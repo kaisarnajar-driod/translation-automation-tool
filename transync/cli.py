@@ -203,6 +203,7 @@ def _print_sync_result(record, dry_run: bool) -> None:
 
     table.add_row("New keys", str(record.new_keys))
     table.add_row("Modified keys", str(record.modified_keys))
+    table.add_row("Removed keys", str(record.removed_keys))
     table.add_row("Languages synced", str(record.languages_synced))
     if record.commit_sha:
         table.add_row("Commit", record.commit_sha[:12])

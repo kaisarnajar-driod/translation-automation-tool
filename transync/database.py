@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS sync_history (
     status          TEXT NOT NULL,
     new_keys        INTEGER NOT NULL DEFAULT 0,
     modified_keys   INTEGER NOT NULL DEFAULT 0,
+    removed_keys    INTEGER NOT NULL DEFAULT 0,
     languages_synced INTEGER NOT NULL DEFAULT 0,
     commit_sha      TEXT NOT NULL DEFAULT '',
     error_message   TEXT NOT NULL DEFAULT '',
@@ -69,6 +70,13 @@ class Database:
     def _init_schema(self) -> None:
         with self._connect() as conn:
             conn.executescript(_SCHEMA)
+            self._migrate(conn)
+
+    @staticmethod
+    def _migrate(conn: sqlite3.Connection) -> None:
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(sync_history)").fetchall()}
+        if "removed_keys" not in columns:
+            conn.execute("ALTER TABLE sync_history ADD COLUMN removed_keys INTEGER NOT NULL DEFAULT 0")
 
     # ── Project CRUD ──────────────────────────────────────────────
 
@@ -130,14 +138,15 @@ class Database:
         with self._connect() as conn:
             cur = conn.execute(
                 """INSERT INTO sync_history
-                   (project_id, status, new_keys, modified_keys, languages_synced,
-                    commit_sha, error_message, started_at, finished_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   (project_id, status, new_keys, modified_keys, removed_keys,
+                    languages_synced, commit_sha, error_message, started_at, finished_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     record.project_id,
                     record.status.value,
                     record.new_keys,
                     record.modified_keys,
+                    record.removed_keys,
                     record.languages_synced,
                     record.commit_sha,
                     record.error_message,
@@ -152,13 +161,14 @@ class Database:
         with self._connect() as conn:
             conn.execute(
                 """UPDATE sync_history SET
-                   status=?, new_keys=?, modified_keys=?, languages_synced=?,
-                   commit_sha=?, error_message=?, finished_at=?
+                   status=?, new_keys=?, modified_keys=?, removed_keys=?,
+                   languages_synced=?, commit_sha=?, error_message=?, finished_at=?
                    WHERE id=?""",
                 (
                     record.status.value,
                     record.new_keys,
                     record.modified_keys,
+                    record.removed_keys,
                     record.languages_synced,
                     record.commit_sha,
                     record.error_message,
@@ -183,6 +193,7 @@ class Database:
             status=SyncStatus(row["status"]),
             new_keys=row["new_keys"],
             modified_keys=row["modified_keys"],
+            removed_keys=row["removed_keys"],
             languages_synced=row["languages_synced"],
             commit_sha=row["commit_sha"],
             error_message=row["error_message"],

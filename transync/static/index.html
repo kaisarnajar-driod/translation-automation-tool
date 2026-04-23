@@ -556,6 +556,7 @@ function showResult(name, data) {
   grid.innerHTML = `
     <div class="result-item"><div class="num">${data.new_keys || 0}</div><div class="label">New Keys</div></div>
     <div class="result-item"><div class="num">${data.modified_keys || 0}</div><div class="label">Modified</div></div>
+    <div class="result-item"><div class="num">${data.removed_keys || 0}</div><div class="label">Removed</div></div>
     <div class="result-item"><div class="num">${data.languages_synced || 0}</div><div class="label">Languages</div></div>
     <div class="result-item"><div class="num">${data.status || '—'}</div><div class="label">Status</div></div>
   `;

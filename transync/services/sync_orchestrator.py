@@ -81,7 +81,7 @@ class SyncOrchestrator:
         )
 
         if not diff.has_changes:
-            logger.info("No new or modified strings found — nothing to do")
+            logger.info("No new, modified, or removed strings found — nothing to do")
             record.status = SyncStatus.SUCCESS
             record.finished_at = datetime.now(timezone.utc).isoformat()
             self._db.update_sync_record(record)
@@ -90,14 +90,27 @@ class SyncOrchestrator:
 
         record.new_keys = len(diff.new_entries)
         record.modified_keys = len(diff.modified_entries)
+        record.removed_keys = len(diff.removed_keys)
 
         entries_to_translate = diff.new_entries + diff.modified_entries
         target_langs = project.target_languages or self._config.target_languages
+        affected_files: list[Path] = []
 
-        # Step 4: Translate + merge for each language
-        affected_files = self._step_translate_and_merge(
-            project, entries_to_translate, target_langs
-        )
+        # Step 4a: Translate + merge new/modified strings
+        if entries_to_translate:
+            affected_files = self._step_translate_and_merge(
+                project, entries_to_translate, target_langs
+            )
+
+        # Step 4b: Remove deleted keys from all language files
+        if diff.removed_keys:
+            removed_files = self._step_remove_deleted_keys(
+                project, diff.removed_keys, target_langs
+            )
+            for f in removed_files:
+                if f not in affected_files:
+                    affected_files.append(f)
+
         record.languages_synced = len(target_langs)
 
         # Step 5: Commit on current branch (no push — local only)
@@ -166,6 +179,28 @@ class SyncOrchestrator:
                 logger.info("  %s: added %d keys", lang, len(added))
             else:
                 logger.info("  %s: no new keys to add", lang)
+
+        return affected
+
+    def _step_remove_deleted_keys(
+        self,
+        project: Project,
+        removed_keys: list[str],
+        target_langs: list[str],
+    ) -> list[Path]:
+        logger.info("Removing %d deleted keys from %d languages", len(removed_keys), len(target_langs))
+        affected: list[Path] = []
+
+        for lang in target_langs:
+            lang_file = project.absolute_res_directory / f"values-{lang}" / "strings.xml"
+            removed = self._xml.remove_keys_from_file(
+                lang_file, removed_keys, sort_keys=self._config.sync.sort_keys
+            )
+            if removed:
+                affected.append(lang_file)
+                logger.info("  %s: removed %d keys", lang, len(removed))
+            else:
+                logger.info("  %s: no keys to remove", lang)
 
         return affected
 

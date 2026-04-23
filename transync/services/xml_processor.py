@@ -147,6 +147,35 @@ class XmlProcessor:
         XmlProcessor.write_strings(path, existing, sort_keys=sort_keys)
         return added_keys
 
+    # ── Removal ───────────────────────────────────────────────────
+
+    @staticmethod
+    def remove_keys_from_file(
+        path: Path,
+        keys_to_remove: list[str],
+        sort_keys: bool = True,
+    ) -> list[str]:
+        """Remove keys from an existing strings.xml. Returns actually removed keys."""
+        if not path.is_file():
+            return []
+
+        existing = XmlProcessor.parse_strings(path)
+        remove_set = set(keys_to_remove)
+        removed: list[str] = []
+        kept: list[StringEntry] = []
+
+        for entry in existing:
+            if entry.key in remove_set:
+                removed.append(entry.key)
+            else:
+                kept.append(entry)
+
+        if removed:
+            XmlProcessor.write_strings(path, kept, sort_keys=sort_keys)
+            logger.debug("Removed %d keys from %s", len(removed), path)
+
+        return removed
+
     # ── Utilities ─────────────────────────────────────────────────
 
     @staticmethod

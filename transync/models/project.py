@@ -43,6 +43,7 @@ class SyncRecord:
     status: SyncStatus
     new_keys: int = 0
     modified_keys: int = 0
+    removed_keys: int = 0
     languages_synced: int = 0
     commit_sha: str = ""
     error_message: str = ""

@@ -18,7 +18,7 @@ class DiffResult:
 
     @property
     def has_changes(self) -> bool:
-        return bool(self.new_entries or self.modified_entries)
+        return bool(self.new_entries or self.modified_entries or self.removed_keys)
 
     @property
     def summary(self) -> str:

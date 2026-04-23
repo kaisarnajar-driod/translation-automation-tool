@@ -6,7 +6,7 @@ A CLI and web-based tool that automates Android `strings.xml` localization. Add 
 
 - **Multi-project management** — track multiple Android projects via CLI or web UI
 - **Google Translate powered** — uses Google's Neural Machine Translation via `deep-translator` (free, no API key needed)
-- **Smart diff detection** — only translates new strings (optionally detects modified strings too)
+- **Smart diff detection** — translates new strings, optionally detects modified strings, and automatically removes deleted strings from all language files
 - **Placeholder safety** — validates that `%s`, `%1$s`, HTML tags survive translation; falls back to source on corruption
 - **Incremental sync** — SQLite snapshot-based tracking avoids re-translating unchanged strings
 - **Web dashboard** — dark-themed single-page UI to add projects, trigger syncs, and view results
@@ -97,8 +97,8 @@ transync serve --port 9000
 Open `http://localhost:8090` in your browser. From there you can:
 
 1. **Add a project** — enter the project name, the local path to your Android project, the path to `strings.xml`, target languages, etc.
-2. **Sync translations** — click the **Sync** button on any project to translate all new strings
-3. **View results** — a modal shows how many new keys were translated and for how many languages
+2. **Sync translations** — click the **Sync** button on any project to translate new strings and remove deleted ones
+3. **View results** — a modal shows how many keys were added, modified, removed, and for how many languages
 4. **Remove projects** — click **Remove** to stop tracking a project
 
 ### Option 2: CLI
@@ -145,11 +145,12 @@ When you run `transync sync <project>` (or click Sync in the web UI):
 
 1. **Parse** — reads the current `values/strings.xml` from disk
 2. **Snapshot** — loads the previous string state from the database (or falls back to the previous version of the file)
-3. **Diff** — identifies new keys (and optionally modified keys if `detect_modified` is enabled)
-4. **Translate** — sends new strings to Google Translate for each target language
+3. **Diff** — identifies new, modified (if enabled), and removed keys
+4. **Translate** — sends new/modified strings to Google Translate for each target language
 5. **Validate** — checks that placeholders (`%s`, `%1$d`, etc.) and HTML tags are preserved in translated text
 6. **Merge** — inserts translations into `values-{lang}/strings.xml` files
-7. **Save** — stores a snapshot of the current strings for the next incremental sync
+7. **Remove** — deletes removed keys from all `values-{lang}/strings.xml` files
+8. **Save** — stores a snapshot of the current strings for the next incremental sync
 
 ## Environment Variables
 
