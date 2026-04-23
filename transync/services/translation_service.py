@@ -49,10 +49,6 @@ class TranslationService:
             from transync.providers.google_free_provider import GoogleFreeProvider
 
             return GoogleFreeProvider()
-        if name == "mock":
-            from transync.providers.mock_provider import MockProvider
-
-            return MockProvider()
         raise TranslationError(f"Unknown translation provider: {name}")
 
     @property
