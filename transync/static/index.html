@@ -171,6 +171,44 @@
     .btn-sync:hover { background: #00a381; }
     .btn-sync:disabled { opacity: 0.5; cursor: not-allowed; }
 
+    .btn-sync-all {
+      background: var(--accent);
+      color: white;
+      padding: 10px 24px;
+      font-size: 14px;
+    }
+
+    .btn-sync-all:hover { background: var(--accent-hover); }
+    .btn-sync-all:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Scheduler Info ────────────────────────────────── */
+
+    .scheduler-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .scheduler-info {
+      font-size: 12px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .scheduler-info .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .scheduler-info .dot.on { background: var(--green); }
+    .scheduler-info .dot.off { background: var(--red); }
+
     /* ── Projects Table ───────────────────────────────── */
 
     .projects-list { margin-top: 8px; }
@@ -388,6 +426,17 @@
     </div>
   </div>
 
+  <!-- Scheduler + Sync All -->
+  <div class="card">
+    <div class="scheduler-bar">
+      <div class="scheduler-info">
+        <span id="scheduler-dot" class="dot off"></span>
+        <span id="scheduler-text">Daily sync: loading...</span>
+      </div>
+      <button class="btn btn-sync-all" id="btn-sync-all" onclick="syncAll()">Sync All Projects</button>
+    </div>
+  </div>
+
   <!-- Projects -->
   <div class="card">
     <h2>Projects</h2>
@@ -583,7 +632,50 @@ function esc(s) {
   return d.innerHTML;
 }
 
-document.addEventListener('DOMContentLoaded', loadProjects);
+async function syncAll() {
+  const btn = document.getElementById('btn-sync-all');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Syncing All...';
+
+  try {
+    const res = await fetch(`${API}/api/sync-all`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await res.json();
+    const results = data.results || [];
+    const ok = results.filter(r => r.status === 'success').length;
+    const fail = results.filter(r => r.status === 'failed').length;
+    toast(`Sync All complete: ${ok} succeeded, ${fail} failed`, fail > 0 ? 'error' : 'success');
+  } catch (e) {
+    toast('Sync All failed: network error', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Sync All Projects';
+  }
+}
+
+async function loadSchedulerStatus() {
+  try {
+    const res = await fetch(`${API}/api/scheduler`);
+    const data = await res.json();
+    const dot = document.getElementById('scheduler-dot');
+    const text = document.getElementById('scheduler-text');
+
+    dot.className = `dot ${data.enabled ? 'on' : 'off'}`;
+    if (data.enabled && data.next_run) {
+      const next = new Date(data.next_run);
+      text.textContent = `Daily sync at ${data.scheduled_time} — next run: ${next.toLocaleString()}`;
+    } else {
+      text.textContent = `Daily sync: disabled`;
+    }
+  } catch (e) { /* ignore */ }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadProjects();
+  loadSchedulerStatus();
+});
 </script>
 
 </body>

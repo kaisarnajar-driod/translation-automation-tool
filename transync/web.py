@@ -11,6 +11,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from transync.config import AppConfig, load_config
 from transync.database import Database
 from transync.models.project import Project
+from transync.services.scheduler import DailyScheduler
 from transync.services.sync_orchestrator import SyncError, SyncOrchestrator
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ def create_app(config: AppConfig | None = None) -> Flask:
 
     app = Flask(__name__, static_folder=str(STATIC_DIR))
     app.config["TRANSYNC"] = cfg
+    scheduler = DailyScheduler(cfg, db)
 
     # ── Serve the SPA ─────────────────────────────────────────────
 
@@ -134,6 +136,39 @@ def create_app(config: AppConfig | None = None) -> Flask:
             }
             for r in records
         ])
+
+    # ── API: Sync All ────────────────────────────────────────────
+
+    @app.route("/api/sync-all", methods=["POST"])
+    def sync_all():
+        results = scheduler.sync_all_now()
+        return jsonify({"results": results})
+
+    # ── API: Scheduler ────────────────────────────────────────────
+
+    @app.route("/api/scheduler", methods=["GET"])
+    def get_scheduler_status():
+        s = scheduler.status
+        return jsonify({
+            "enabled": s.enabled,
+            "scheduled_time": s.scheduled_time,
+            "next_run": s.next_run,
+            "last_run": s.last_run,
+            "last_results": s.last_results,
+        })
+
+    @app.route("/api/scheduler", methods=["POST"])
+    def update_scheduler():
+        data = request.get_json(force=True)
+        action = data.get("action", "").strip()
+        if action == "start":
+            scheduler.start()
+        elif action == "stop":
+            scheduler.stop()
+        else:
+            return jsonify({"error": "action must be 'start' or 'stop'"}), 400
+        s = scheduler.status
+        return jsonify({"enabled": s.enabled, "next_run": s.next_run})
 
     # ── API: Config ───────────────────────────────────────────────
 

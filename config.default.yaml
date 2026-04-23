@@ -23,6 +23,10 @@ sync:
   detect_modified: false
   sort_keys: true
 
+schedule:
+  enabled: true
+  time: "00:00"
+
 database:
   path: "~/.transync/transync.db"
 

@@ -45,6 +45,11 @@ class TranslationConfig(BaseModel):
     google: GoogleConfig = Field(default_factory=GoogleConfig)
 
 
+class ScheduleConfig(BaseModel):
+    enabled: bool = True
+    time: str = "00:00"
+
+
 class SyncConfig(BaseModel):
     dry_run: bool = False
     detect_modified: bool = False
@@ -68,6 +73,7 @@ class AppConfig(BaseModel):
     git: GitConfig = Field(default_factory=GitConfig)
     translation: TranslationConfig = Field(default_factory=TranslationConfig)
     sync: SyncConfig = Field(default_factory=SyncConfig)
+    schedule: ScheduleConfig = Field(default_factory=ScheduleConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 
