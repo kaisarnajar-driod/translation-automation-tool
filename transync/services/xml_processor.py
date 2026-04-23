@@ -1,4 +1,4 @@
-"""Robust XML parser/writer for Android strings.xml resources.
+"""Robust XML parser/writer for strings.xml resources.
 
 Uses lxml for parsing to handle edge cases: CDATA, HTML entities, namespaces.
 """
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 _XML_HEADER = '<?xml version="1.0" encoding="utf-8"?>\n'
 
-# Matches Android format placeholders: %s, %d, %1$s, %2$d, etc.
+# Matches format placeholders: %s, %d, %1$s, %2$d, etc.
 PLACEHOLDER_RE = re.compile(r"%(\d+\$)?[sdfc]")
 
 
@@ -26,7 +26,7 @@ class XmlError(Exception):
 
 
 class XmlProcessor:
-    """Read and write Android strings.xml files."""
+    """Read and write strings.xml files."""
 
     # ── Parsing ───────────────────────────────────────────────────
 

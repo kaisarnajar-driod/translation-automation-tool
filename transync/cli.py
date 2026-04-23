@@ -1,4 +1,4 @@
-"""Transync CLI — manage projects and sync Android translations."""
+"""Transync CLI — manage projects and sync translations."""
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ def _get_db(config: AppConfig) -> Database:
 )
 @click.pass_context
 def cli(ctx: click.Context, config_path: str | None) -> None:
-    """Transync — Android Translation Automation Tool."""
+    """Transync — Translation Automation Tool."""
     ctx.ensure_object(dict)
     ctx.obj["config_path"] = config_path
 
@@ -64,13 +64,13 @@ def cli(ctx: click.Context, config_path: str | None) -> None:
 @click.option("--branch", default="main", help="Default branch")
 @click.option(
     "--strings-path",
-    default="app/src/main/res/values/strings.xml",
+    default="strings.xml",
     help="Relative path to strings.xml",
 )
 @click.option(
     "--res-dir",
-    default="app/src/main/res",
-    help="Relative path to res directory",
+    default=".",
+    help="Relative path to resource directory",
 )
 @click.option("--languages", default="", help="Comma-separated target language codes")
 @click.option("--clone/--no-clone", default=True, help="Clone the repo if path doesn't exist")
@@ -154,7 +154,7 @@ def list_projects(ctx: click.Context) -> None:
     table.add_column("Languages")
 
     for p in projects:
-        langs = ", ".join(p.target_languages) if p.target_languages else "(config default)"
+        langs = ", ".join(p.target_languages) if p.target_languages else "(none)"
         table.add_row(p.name, p.repo_url, p.branch, p.local_path, langs)
 
     console.print(table)
@@ -272,7 +272,6 @@ def show_config(ctx: click.Context) -> None:
     table.add_column("Setting", style="bold")
     table.add_column("Value")
 
-    table.add_row("Target languages", ", ".join(config.target_languages))
     table.add_row("Translation provider", config.translation.provider)
     table.add_row("Default strings path", config.default_strings_path)
     table.add_row("Res directory", config.res_directory)

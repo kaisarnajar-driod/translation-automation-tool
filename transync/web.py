@@ -142,7 +142,6 @@ def create_app(config: AppConfig | None = None) -> Flask:
     @app.route("/api/config", methods=["GET"])
     def get_config():
         return jsonify({
-            "target_languages": cfg.target_languages,
             "translation_provider": cfg.translation.provider,
             "default_strings_path": cfg.default_strings_path,
             "res_directory": cfg.res_directory,

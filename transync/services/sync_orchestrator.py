@@ -93,7 +93,9 @@ class SyncOrchestrator:
         record.removed_keys = len(diff.removed_keys)
 
         entries_to_translate = diff.new_entries + diff.modified_entries
-        target_langs = project.target_languages or self._config.target_languages
+        target_langs = project.target_languages
+        if not target_langs:
+            raise SyncError("No target languages configured for this project")
         affected_files: list[Path] = []
 
         # Step 4a: Translate + merge new/modified strings

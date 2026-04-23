@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS projects (
     repo_url        TEXT NOT NULL,
     local_path      TEXT NOT NULL,
     branch          TEXT NOT NULL DEFAULT 'main',
-    strings_path    TEXT NOT NULL DEFAULT 'app/src/main/res/values/strings.xml',
-    res_directory   TEXT NOT NULL DEFAULT 'app/src/main/res',
+    strings_path    TEXT NOT NULL DEFAULT 'strings.xml',
+    res_directory   TEXT NOT NULL DEFAULT '.',
     target_languages TEXT NOT NULL DEFAULT '[]',
     created_at      TEXT NOT NULL,
     updated_at      TEXT NOT NULL

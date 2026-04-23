@@ -1,14 +1,7 @@
-# Transync - Android Translation Automation Tool
+# Transync - Translation Automation Tool
 
-target_languages:
-  - hi
-  - ar
-  - fr
-  - es
-  - de
-
-default_strings_path: "app/src/main/res/values/strings.xml"
-res_directory: "app/src/main/res"
+default_strings_path: "strings.xml"
+res_directory: "."
 
 git:
   default_branch: "main"

@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "transync"
 version = "1.0.0"
-description = "Production-grade automation tool for Android localization sync across Git repositories"
+description = "Translation automation tool for syncing string resources across multiple projects"
 readme = "README.md"
 requires-python = ">=3.9"
-license = {text = "MIT"}
+license = {text = "Proprietary"}
 dependencies = [
     "click>=8.1",
     "rich>=13.0",

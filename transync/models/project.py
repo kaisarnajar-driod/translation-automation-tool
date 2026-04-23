@@ -21,8 +21,8 @@ class Project:
     repo_url: str
     local_path: str
     branch: str = "main"
-    strings_path: str = "app/src/main/res/values/strings.xml"
-    res_directory: str = "app/src/main/res"
+    strings_path: str = "strings.xml"
+    res_directory: str = "."
     target_languages: list[str] = field(default_factory=list)
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
@@ -53,7 +53,7 @@ class SyncRecord:
 
 @dataclass
 class StringEntry:
-    """A single <string> element from strings.xml."""
+    """A single <string> element from a strings XML resource file."""
     key: str
     value: str
     translatable: bool = True
