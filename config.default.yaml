@@ -1,7 +1,6 @@
 # Transync - Translation Automation Tool
 
 default_strings_path: "strings.xml"
-res_directory: "."
 
 git:
   default_branch: "main"

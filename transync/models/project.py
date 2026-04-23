@@ -22,7 +22,6 @@ class Project:
     local_path: str
     branch: str = "main"
     strings_path: str = "strings.xml"
-    res_directory: str = "."
     target_languages: list[str] = field(default_factory=list)
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
@@ -33,7 +32,8 @@ class Project:
 
     @property
     def absolute_res_directory(self) -> Path:
-        return Path(self.local_path) / self.res_directory
+        """Derived from strings_path: the grandparent of the strings file."""
+        return self.absolute_strings_path.parent.parent
 
 
 @dataclass

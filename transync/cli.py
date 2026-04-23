@@ -67,11 +67,6 @@ def cli(ctx: click.Context, config_path: str | None) -> None:
     default="strings.xml",
     help="Relative path to strings.xml",
 )
-@click.option(
-    "--res-dir",
-    default=".",
-    help="Relative path to resource directory",
-)
 @click.option("--languages", default="", help="Comma-separated target language codes")
 @click.option("--clone/--no-clone", default=True, help="Clone the repo if path doesn't exist")
 @click.pass_context
@@ -82,7 +77,6 @@ def add(
     local_path: str,
     branch: str,
     strings_path: str,
-    res_dir: str,
     languages: str,
     clone: bool,
 ) -> None:
@@ -111,7 +105,6 @@ def add(
         local_path=str(local),
         branch=branch,
         strings_path=strings_path,
-        res_directory=res_dir,
         target_languages=lang_list,
     )
     db.add_project(project)
@@ -274,7 +267,6 @@ def show_config(ctx: click.Context) -> None:
 
     table.add_row("Translation provider", config.translation.provider)
     table.add_row("Default strings path", config.default_strings_path)
-    table.add_row("Res directory", config.res_directory)
     table.add_row("Git branch", config.git.default_branch)
     table.add_row("Dry run", str(config.sync.dry_run))
     table.add_row("Sort keys", str(config.sync.sort_keys))

@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS projects (
     local_path      TEXT NOT NULL,
     branch          TEXT NOT NULL DEFAULT 'main',
     strings_path    TEXT NOT NULL DEFAULT 'strings.xml',
-    res_directory   TEXT NOT NULL DEFAULT '.',
     target_languages TEXT NOT NULL DEFAULT '[]',
     created_at      TEXT NOT NULL,
     updated_at      TEXT NOT NULL
@@ -84,16 +83,15 @@ class Database:
         with self._connect() as conn:
             cur = conn.execute(
                 """INSERT INTO projects
-                   (name, repo_url, local_path, branch, strings_path, res_directory,
+                   (name, repo_url, local_path, branch, strings_path,
                     target_languages, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     project.name,
                     project.repo_url,
                     project.local_path,
                     project.branch,
                     project.strings_path,
-                    project.res_directory,
                     json.dumps(project.target_languages),
                     project.created_at,
                     project.updated_at,
@@ -126,7 +124,6 @@ class Database:
             local_path=row["local_path"],
             branch=row["branch"],
             strings_path=row["strings_path"],
-            res_directory=row["res_directory"],
             target_languages=json.loads(row["target_languages"]),
             created_at=row["created_at"],
             updated_at=row["updated_at"],

@@ -65,7 +65,6 @@ class LoggingConfig(BaseModel):
 
 class AppConfig(BaseModel):
     default_strings_path: str = "strings.xml"
-    res_directory: str = "."
     git: GitConfig = Field(default_factory=GitConfig)
     translation: TranslationConfig = Field(default_factory=TranslationConfig)
     sync: SyncConfig = Field(default_factory=SyncConfig)

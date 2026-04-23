@@ -94,7 +94,7 @@ transync serve --port 9000
 
 Open `http://localhost:8090` in your browser. From there you can:
 
-1. **Add a project** — enter the project name, local path, path to `strings.xml`, resource directory, and target languages
+1. **Add a project** — enter the project name, local path, path to `strings.xml`, and target languages
 2. **Sync translations** — click the **Sync** button on any project to translate new strings and remove deleted ones
 3. **View results** — a modal shows how many keys were added, modified, removed, and for how many languages
 4. **Remove projects** — click **Remove** to stop tracking a project
@@ -106,7 +106,6 @@ Open `http://localhost:8090` in your browser. From there you can:
 transync add my-app https://github.com/org/my-app.git \
   --path ~/projects/my-app \
   --strings-path app/src/main/res/values/strings.xml \
-  --res-dir app/src/main/res \
   --branch main \
   --languages hi,ar,fr,es
 

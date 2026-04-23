@@ -375,10 +375,6 @@
         <input type="text" id="f-strings" placeholder="path/to/strings.xml" value="" />
       </div>
       <div class="form-group">
-        <label>Res Directory</label>
-        <input type="text" id="f-res" placeholder="path/to/resource/directory" value="" />
-      </div>
-      <div class="form-group">
         <label>Branch</label>
         <input type="text" id="f-branch" placeholder="main" value="main" />
       </div>
@@ -467,7 +463,6 @@ async function addProject() {
   const name = document.getElementById('f-name').value.trim();
   const local_path = document.getElementById('f-path').value.trim();
   const strings_path = document.getElementById('f-strings').value.trim();
-  const res_directory = document.getElementById('f-res').value.trim();
   const branch = document.getElementById('f-branch').value.trim();
   const langs = document.getElementById('f-langs').value.trim();
 
@@ -485,7 +480,7 @@ async function addProject() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name, local_path, strings_path, res_directory, branch,
+        name, local_path, strings_path, branch,
         languages: langs.split(',').map(l => l.trim()).filter(Boolean),
       }),
     });

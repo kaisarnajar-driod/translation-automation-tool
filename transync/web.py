@@ -44,7 +44,6 @@ def create_app(config: AppConfig | None = None) -> Flask:
         name = data.get("name", "").strip()
         local_path = data.get("local_path", "").strip()
         strings_path = data.get("strings_path", cfg.default_strings_path).strip()
-        res_directory = data.get("res_directory", cfg.res_directory).strip()
         branch = data.get("branch", cfg.git.default_branch).strip()
         languages = data.get("languages", [])
 
@@ -72,7 +71,6 @@ def create_app(config: AppConfig | None = None) -> Flask:
             local_path=str(local),
             branch=branch,
             strings_path=strings_path,
-            res_directory=res_directory,
             target_languages=languages,
         )
         saved = db.add_project(project)
@@ -144,7 +142,6 @@ def create_app(config: AppConfig | None = None) -> Flask:
         return jsonify({
             "translation_provider": cfg.translation.provider,
             "default_strings_path": cfg.default_strings_path,
-            "res_directory": cfg.res_directory,
         })
 
     return app
@@ -158,7 +155,6 @@ def _project_to_dict(p: Project) -> dict:
         "local_path": p.local_path,
         "branch": p.branch,
         "strings_path": p.strings_path,
-        "res_directory": p.res_directory,
         "target_languages": p.target_languages,
         "created_at": p.created_at,
     }
