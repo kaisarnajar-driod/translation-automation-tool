@@ -80,7 +80,26 @@ class SyncOrchestrator:
             detect_modified=self._config.sync.detect_modified,
         )
 
-        if not diff.has_changes:
+        target_langs = project.target_languages
+        if not target_langs:
+            raise SyncError("No target languages configured for this project")
+
+        # Detect languages that don't have a strings.xml yet (newly added)
+        new_langs = self._detect_new_languages(project, target_langs)
+        existing_langs = [l for l in target_langs if l not in new_langs]
+
+        translatable_entries = [e for e in current_entries if e.translatable]
+        affected_files: list[Path] = []
+
+        # Step 4a: Full translation for newly added languages
+        if new_langs and translatable_entries:
+            logger.info("New languages detected: %s — translating all strings", ", ".join(new_langs))
+            new_lang_files = self._step_translate_and_merge(
+                project, translatable_entries, new_langs
+            )
+            affected_files.extend(new_lang_files)
+
+        if not diff.has_changes and not new_langs:
             logger.info("No new, modified, or removed strings found — nothing to do")
             record.status = SyncStatus.SUCCESS
             record.finished_at = datetime.now(timezone.utc).isoformat()
@@ -93,18 +112,17 @@ class SyncOrchestrator:
         record.removed_keys = len(diff.removed_keys)
 
         entries_to_translate = diff.new_entries + diff.modified_entries
-        target_langs = project.target_languages
-        if not target_langs:
-            raise SyncError("No target languages configured for this project")
-        affected_files: list[Path] = []
 
-        # Step 4a: Translate + merge new/modified strings
-        if entries_to_translate:
-            affected_files = self._step_translate_and_merge(
-                project, entries_to_translate, target_langs
+        # Step 4b: Translate + merge new/modified strings for existing languages
+        if entries_to_translate and existing_langs:
+            merge_files = self._step_translate_and_merge(
+                project, entries_to_translate, existing_langs
             )
+            for f in merge_files:
+                if f not in affected_files:
+                    affected_files.append(f)
 
-        # Step 4b: Remove deleted keys from all language files
+        # Step 4c: Remove deleted keys from all language files
         if diff.removed_keys:
             removed_files = self._step_remove_deleted_keys(
                 project, diff.removed_keys, target_langs
@@ -132,6 +150,16 @@ class SyncOrchestrator:
         return record
 
     # ── Individual Steps ──────────────────────────────────────────
+
+    @staticmethod
+    def _detect_new_languages(project: Project, target_langs: list[str]) -> list[str]:
+        """Return languages that don't have a strings.xml file yet."""
+        new_langs: list[str] = []
+        for lang in target_langs:
+            lang_file = project.absolute_res_directory / f"values-{lang}" / "strings.xml"
+            if not lang_file.is_file():
+                new_langs.append(lang)
+        return new_langs
 
     def _step_parse_current(self, project: Project) -> list[StringEntry]:
         logger.info("Parsing current strings.xml")
