@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=64.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "transync"
+version = "1.0.0"
+description = "Production-grade automation tool for Android localization sync across Git repositories"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+dependencies = [
+    "click>=8.1",
+    "rich>=13.0",
+    "gitpython>=3.1",
+    "openai>=1.0",
+    "deepl>=1.16",
+    "httpx>=0.27",
+    "pyyaml>=6.0",
+    "lxml>=5.0",
+    "pydantic>=2.0",
+    "flask>=3.0",
+    "deep-translator>=1.11",
+]
+
+[project.scripts]
+transync = "transync.cli:cli"
+transync-web = "transync.web:main"
+
+[tool.setuptools.packages.find]
+include = ["transync*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true

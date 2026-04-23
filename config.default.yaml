@@ -1,0 +1,38 @@
+# Transync - Android Translation Automation Tool
+
+target_languages:
+  - hi
+  - ar
+  - fr
+  - es
+  - de
+
+default_strings_path: "app/src/main/res/values/strings.xml"
+res_directory: "app/src/main/res"
+
+git:
+  default_branch: "main"
+  commit_message: "chore: add translations for new strings"
+
+translation:
+  provider: "google_free"
+  openai:
+    model: "gpt-4o"
+    api_key: ""
+    max_batch_size: 20
+    temperature: 0.2
+  deepl:
+    api_key: ""
+  google:
+    api_key: ""
+
+sync:
+  dry_run: false
+  detect_modified: false
+  sort_keys: true
+
+database:
+  path: "~/.transync/transync.db"
+
+logging:
+  level: "INFO"

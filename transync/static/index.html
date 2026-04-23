@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transync — Android Translation Sync</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #242836;
+      --border: #2e3345;
+      --text: #e4e6f0;
+      --text-dim: #8b8fa3;
+      --accent: #6c5ce7;
+      --accent-hover: #7f71ed;
+      --green: #00b894;
+      --red: #e17055;
+      --yellow: #fdcb6e;
+      --blue: #74b9ff;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    header h1 span { color: var(--accent); }
+
+    .badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: var(--surface2);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* ── Add Project Form ─────────────────────────────── */
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    .form-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .form-group input::placeholder { color: #555; }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 10px 24px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--red);
+      border: 1px solid var(--red);
+      padding: 6px 14px;
+      font-size: 12px;
+    }
+
+    .btn-danger:hover { background: rgba(225, 112, 85, 0.1); }
+
+    .btn-sync {
+      background: var(--green);
+      color: white;
+      padding: 8px 18px;
+      font-size: 13px;
+    }
+
+    .btn-sync:hover { background: #00a381; }
+    .btn-sync:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Projects Table ───────────────────────────────── */
+
+    .projects-list { margin-top: 8px; }
+
+    .project-row {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.2s;
+    }
+
+    .project-row:hover { border-color: var(--accent); }
+
+    .project-info { flex: 1; }
+
+    .project-info h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .project-info .meta {
+      font-size: 12px;
+      color: var(--text-dim);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .project-info .meta span { display: inline-flex; align-items: center; gap: 4px; }
+
+    .project-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px;
+      color: var(--text-dim);
+    }
+
+    .empty-state p { font-size: 14px; margin-top: 8px; }
+
+    /* ── Toast ─────────────────────────────────────────── */
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast-msg {
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: var(--shadow);
+      animation: slideIn 0.3s ease;
+      max-width: 420px;
+      word-break: break-word;
+    }
+
+    .toast-msg.success { background: var(--green); color: white; }
+    .toast-msg.error { background: var(--red); color: white; }
+    .toast-msg.info { background: var(--blue); color: #1a1d27; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── Sync Result Modal ────────────────────────────── */
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      width: 440px;
+      max-width: 90vw;
+      box-shadow: var(--shadow);
+    }
+
+    .modal h3 {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .result-item {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .result-item .num {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .result-item .label {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .result-commit {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: var(--green);
+      margin-bottom: 16px;
+      word-break: break-all;
+    }
+
+    .modal-close {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .modal-close:hover { background: var(--surface2); }
+
+    /* ── Spinner ───────────────────────────────────────── */
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1><span>Trans</span>ync</h1>
+  <span class="badge">Android Translation Sync</span>
+</header>
+
+<main>
+  <!-- Add Project -->
+  <div class="card">
+    <h2>Add Project</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Project Name</label>
+        <input type="text" id="f-name" placeholder="my-android-app" />
+      </div>
+      <div class="form-group">
+        <label>Local Path</label>
+        <input type="text" id="f-path" placeholder="/Users/you/projects/my-app" />
+      </div>
+      <div class="form-group">
+        <label>Strings.xml Path</label>
+        <input type="text" id="f-strings" placeholder="app/src/main/res/values/strings.xml" value="app/src/main/res/values/strings.xml" />
+      </div>
+      <div class="form-group">
+        <label>Res Directory</label>
+        <input type="text" id="f-res" placeholder="app/src/main/res" value="app/src/main/res" />
+      </div>
+      <div class="form-group">
+        <label>Branch</label>
+        <input type="text" id="f-branch" placeholder="main" value="main" />
+      </div>
+      <div class="form-group">
+        <label>Languages (comma-separated)</label>
+        <input type="text" id="f-langs" placeholder="hi, ar, fr, es, de" value="hi, ar, fr, es" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" id="btn-add" onclick="addProject()">Add Project</button>
+    </div>
+  </div>
+
+  <!-- Projects -->
+  <div class="card">
+    <h2>Projects</h2>
+    <div id="projects-container">
+      <div class="empty-state">
+        <p>No projects yet. Add one above to get started.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Result Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">Sync Complete</h3>
+    <div class="result-grid" id="modal-grid"></div>
+    <div class="result-commit" id="modal-commit" style="display:none;"></div>
+    <div id="modal-error" style="display:none; color:var(--red); margin-bottom:16px; font-size:13px;"></div>
+    <button class="modal-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = '';
+
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast-msg ${type}`;
+  el.textContent = msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+async function loadProjects() {
+  try {
+    const res = await fetch(`${API}/api/projects`);
+    const projects = await res.json();
+    renderProjects(projects);
+  } catch (e) {
+    toast('Failed to load projects', 'error');
+  }
+}
+
+function renderProjects(projects) {
+  const container = document.getElementById('projects-container');
+  if (!projects.length) {
+    container.innerHTML = '<div class="empty-state"><p>No projects yet. Add one above to get started.</p></div>';
+    return;
+  }
+  container.innerHTML = projects.map(p => `
+    <div class="project-row" id="row-${p.name}">
+      <div class="project-info">
+        <h3>${esc(p.name)}</h3>
+        <div class="meta">
+          <span>Path: ${esc(p.local_path)}</span>
+          <span>Branch: ${esc(p.branch)}</span>
+          <span>Languages: ${p.target_languages.length ? esc(p.target_languages.join(', ')) : 'default'}</span>
+        </div>
+      </div>
+      <div class="project-actions">
+        <button class="btn btn-sync" id="sync-${p.name}" onclick="syncProject('${esc(p.name)}')">
+          Sync
+        </button>
+        <button class="btn btn-danger" onclick="removeProject('${esc(p.name)}')">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function addProject() {
+  const name = document.getElementById('f-name').value.trim();
+  const local_path = document.getElementById('f-path').value.trim();
+  const strings_path = document.getElementById('f-strings').value.trim();
+  const res_directory = document.getElementById('f-res').value.trim();
+  const branch = document.getElementById('f-branch').value.trim();
+  const langs = document.getElementById('f-langs').value.trim();
+
+  if (!name || !local_path) {
+    toast('Name and path are required', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-add');
+  btn.disabled = true;
+  btn.textContent = 'Adding...';
+
+  try {
+    const res = await fetch(`${API}/api/projects`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name, local_path, strings_path, res_directory, branch,
+        languages: langs.split(',').map(l => l.trim()).filter(Boolean),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast(data.error || 'Failed to add project', 'error');
+      return;
+    }
+    toast(`Project "${name}" added`, 'success');
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-path').value = '';
+    loadProjects();
+  } catch (e) {
+    toast('Network error', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Add Project';
+  }
+}
+
+async function removeProject(name) {
+  if (!confirm(`Remove project "${name}"?`)) return;
+  try {
+    const res = await fetch(`${API}/api/projects/${name}`, { method: 'DELETE' });
+    if (res.ok) {
+      toast(`Project "${name}" removed`, 'success');
+      loadProjects();
+    } else {
+      toast('Failed to remove', 'error');
+    }
+  } catch (e) {
+    toast('Network error', 'error');
+  }
+}
+
+async function syncProject(name) {
+  const btn = document.getElementById(`sync-${name}`);
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Syncing...';
+
+  try {
+    const res = await fetch(`${API}/api/projects/${name}/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    showResult(name, data);
+  } catch (e) {
+    toast('Sync failed: network error', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Sync';
+  }
+}
+
+function showResult(name, data) {
+  const modal = document.getElementById('modal');
+  const title = document.getElementById('modal-title');
+  const grid = document.getElementById('modal-grid');
+  const commitEl = document.getElementById('modal-commit');
+  const errorEl = document.getElementById('modal-error');
+
+  const ok = data.status === 'success';
+  title.textContent = ok ? `Sync Complete — ${name}` : `Sync Failed — ${name}`;
+  title.style.color = ok ? 'var(--green)' : 'var(--red)';
+
+  grid.innerHTML = `
+    <div class="result-item"><div class="num">${data.new_keys || 0}</div><div class="label">New Keys</div></div>
+    <div class="result-item"><div class="num">${data.modified_keys || 0}</div><div class="label">Modified</div></div>
+    <div class="result-item"><div class="num">${data.languages_synced || 0}</div><div class="label">Languages</div></div>
+    <div class="result-item"><div class="num">${data.status || '—'}</div><div class="label">Status</div></div>
+  `;
+
+  if (data.commit_sha) {
+    commitEl.style.display = 'block';
+    commitEl.textContent = 'Commit: ' + data.commit_sha;
+  } else {
+    commitEl.style.display = 'none';
+  }
+
+  if (data.error && !ok) {
+    errorEl.style.display = 'block';
+    errorEl.textContent = data.error;
+  } else {
+    errorEl.style.display = 'none';
+  }
+
+  modal.classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+document.addEventListener('DOMContentLoaded', loadProjects);
+</script>
+
+</body>
+</html>
