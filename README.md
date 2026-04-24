@@ -1,9 +1,10 @@
 # Transync — Translation Automation Tool
 
-A CLI and web-based tool that automates string localization across projects. Add your Android, iOS, React, or Backend projects, configure target languages, hit **Sync**, and Transync translates all new strings using Google Translate — no API key required.
+A CLI and web-based tool that automates string localization across projects. Provide a Git repository URL, configure target languages, hit **Sync**, and Transync clones the repo, translates new strings using Google Translate, commits, and pushes — no API key required.
 
 ## Features
 
+- **Git-native workflow** — provide a repo URL; Transync clones it, pulls latest changes on every sync, commits translations, and pushes back automatically
 - **Multi-platform support** — Android (XML), iOS (.lproj), React (JSON), Java Backend (JSON), and more — auto-detected from the strings file path
 - **Google Translate powered** — uses Google's Neural Machine Translation via `deep-translator` (free, no API key needed)
 - **Smart diff detection** — translates new strings, optionally detects modified strings, and automatically removes deleted strings from all language files
@@ -39,13 +40,15 @@ Detection rules (checked in order):
                       │
 ┌─────────────────────▼────────────────────────────┐
 │              Sync Orchestrator                    │
-└──┬────────────┬────────────┬─────────────────────┘
-   │            │            │
-┌──▼─────┐  ┌──▼─────┐  ┌───▼──────────────────┐
-│  Diff  │  │  File  │  │  Translation Service  │
-│ Engine │  │ Proc.  │  │  └─ Google Translate   │
-└────────┘  │XML/JSON│  │     (deep-translator)  │
-            └────────┘  └────────────────────────┘
+└──┬────────┬────────┬────────┬────────────────────┘
+   │        │        │        │
+┌──▼───┐ ┌──▼───┐ ┌──▼───┐ ┌──▼─────────────────┐
+│ Git  │ │ Diff │ │ File │ │ Translation Service │
+│ Svc  │ │ Eng. │ │ Proc │ │ └─ Google Translate │
+│clone │ └──────┘ │XML/  │ │   (deep-translator) │
+│pull  │          │JSON  │ └─────────────────────┘
+│push  │          └──────┘
+└──────┘
 ┌──────────────────────────────────────────────────┐
 │               SQLite Database                    │
 │       projects · sync_history · snapshots        │
@@ -82,6 +85,10 @@ This creates a `config.yaml` in the current directory. The default translation p
 Edit `config.yaml` to set your preferences:
 
 ```yaml
+git:
+  clone_directory: "~/.transync/repos"   # where cloned repos are stored
+  commit_message: "chore: add translations for new strings"
+
 translation:
   provider: "google_free"
 
@@ -94,7 +101,7 @@ database:
   path: "~/.transync/transync.db"
 ```
 
-Target languages are configured per-project when you add them (via the web UI or CLI), not globally in the config file.
+Repos are cloned automatically to `~/.transync/repos/` when you add a project. Target languages are configured per-project when you add them (via the web UI or CLI), not globally in the config file.
 
 ## How to Use
 
@@ -110,37 +117,33 @@ transync serve --port 9000
 
 Open `http://localhost:8090` in your browser. From there you can:
 
-1. **Add a project** — enter the project name, local path, strings file path (platform auto-detected), and target languages
-2. **Sync translations** — click the **Sync** button on any project to translate new strings and remove deleted ones
+1. **Add a project** — enter the project name, Git repo URL, strings file path, and target languages. The repo is cloned automatically.
+2. **Sync translations** — click the **Sync** button on any project. Transync pulls, translates, commits, and pushes.
 3. **View results** — a modal shows how many keys were added, modified, removed, and for how many languages
 4. **Remove projects** — click **Remove** to stop tracking a project
 
 ### Option 2: CLI
 
 ```bash
-# Add an Android project
+# Add an Android project (repo is cloned automatically)
 transync add my-android-app https://github.com/org/my-app.git \
-  --path ~/projects/my-app \
   --strings-path app/src/main/res/values/strings.xml \
-  --branch main \
   --languages hi,ar,fr,es
 
 # Add an iOS project
 transync add my-ios-app https://github.com/org/my-ios-app.git \
-  --path ~/projects/my-ios-app \
   --strings-path MyApp/en.lproj/Localizable.strings \
   --languages hi,ar,fr,es
 
 # Add a React project (JSON)
 transync add my-react-app https://github.com/org/my-react-app.git \
-  --path ~/projects/my-react-app \
   --strings-path src/locales/en/strings.json \
   --languages hi,ar,fr,es
 
 # List all tracked projects
 transync list
 
-# Sync translations (translates new strings for all target languages)
+# Sync translations (pulls, translates, commits, and pushes)
 transync sync my-android-app
 
 # Dry run — see what would be translated without writing files
@@ -170,14 +173,16 @@ transync config
 
 When you run `transync sync <project>` (or click Sync in the web UI):
 
-1. **Parse** — reads the current strings file from disk (XML or JSON, auto-detected)
-2. **Snapshot** — loads the previous string state from the database (or falls back to the previous version of the file)
-3. **Diff** — identifies new, modified (if enabled), and removed keys
-4. **Translate** — sends new/modified strings to Google Translate for each target language
-5. **Validate** — checks that placeholders (`%s`, `%1$d`, etc.) and HTML tags are preserved in translated text
-6. **Merge** — inserts translations into platform-specific language files
-7. **Remove** — deletes removed keys from all language files
-8. **Save** — stores a snapshot of the current strings for the next incremental sync
+1. **Pull** — fetches the latest changes from the remote repository
+2. **Parse** — reads the current strings file from disk (XML or JSON, auto-detected)
+3. **Snapshot** — loads the previous string state from the database (or falls back to the previous version of the file)
+4. **Diff** — identifies new, modified (if enabled), and removed keys
+5. **Translate** — sends new/modified strings to Google Translate for each target language
+6. **Validate** — checks that placeholders (`%s`, `%1$d`, etc.) and HTML tags are preserved in translated text
+7. **Merge** — inserts translations into platform-specific language files
+8. **Remove** — deletes removed keys from all language files
+9. **Commit & Push** — commits translation files and pushes to the remote repository
+10. **Save** — stores a snapshot of the current strings for the next incremental sync
 
 ## Environment Variables
 

@@ -5,6 +5,7 @@ default_strings_path: "strings.xml"
 git:
   default_branch: "main"
   commit_message: "chore: add translations for new strings"
+  clone_directory: "~/.transync/repos"
 
 translation:
   provider: "google_free"

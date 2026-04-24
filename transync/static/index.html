@@ -405,8 +405,8 @@
         <input type="text" id="f-name" placeholder="my-app" />
       </div>
       <div class="form-group">
-        <label>Local Path</label>
-        <input type="text" id="f-path" placeholder="/Users/you/projects/my-app" />
+        <label>Repository URL</label>
+        <input type="text" id="f-repo" placeholder="https://github.com/org/my-app.git" />
       </div>
       <div class="form-group">
         <label>Strings File Path</label>
@@ -493,7 +493,7 @@ function renderProjects(projects) {
       <div class="project-info">
         <h3>${esc(p.name)}</h3>
         <div class="meta">
-          <span>Path: ${esc(p.local_path)}</span>
+          <span>Repo: ${esc(p.repo_url)}</span>
           <span>Branch: ${esc(p.branch)}</span>
           <span>Languages: ${p.target_languages.length ? esc(p.target_languages.join(', ')) : 'default'}</span>
         </div>
@@ -510,26 +510,26 @@ function renderProjects(projects) {
 
 async function addProject() {
   const name = document.getElementById('f-name').value.trim();
-  const local_path = document.getElementById('f-path').value.trim();
+  const repo_url = document.getElementById('f-repo').value.trim();
   const strings_path = document.getElementById('f-strings').value.trim();
   const branch = document.getElementById('f-branch').value.trim();
   const langs = document.getElementById('f-langs').value.trim();
 
-  if (!name || !local_path) {
-    toast('Name and path are required', 'error');
+  if (!name || !repo_url) {
+    toast('Name and repository URL are required', 'error');
     return;
   }
 
   const btn = document.getElementById('btn-add');
   btn.disabled = true;
-  btn.textContent = 'Adding...';
+  btn.textContent = 'Cloning & Adding...';
 
   try {
     const res = await fetch(`${API}/api/projects`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name, local_path, strings_path, branch,
+        name, repo_url, strings_path, branch,
         languages: langs.split(',').map(l => l.trim()).filter(Boolean),
       }),
     });
@@ -538,9 +538,9 @@ async function addProject() {
       toast(data.error || 'Failed to add project', 'error');
       return;
     }
-    toast(`Project "${name}" added`, 'success');
+    toast(`Project "${name}" added — repo cloned successfully`, 'success');
     document.getElementById('f-name').value = '';
-    document.getElementById('f-path').value = '';
+    document.getElementById('f-repo').value = '';
     loadProjects();
   } catch (e) {
     toast('Network error', 'error');

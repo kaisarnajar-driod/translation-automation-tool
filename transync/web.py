@@ -11,6 +11,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from transync.config import AppConfig, load_config
 from transync.database import Database
 from transync.models.project import Project
+from transync.services.git_service import GitError, GitService
 from transync.services.scheduler import DailyScheduler
 from transync.services.sync_orchestrator import SyncError, SyncOrchestrator
 
@@ -44,21 +45,15 @@ def create_app(config: AppConfig | None = None) -> Flask:
     def add_project():
         data = request.get_json(force=True)
         name = data.get("name", "").strip()
-        local_path = data.get("local_path", "").strip()
+        repo_url = data.get("repo_url", "").strip()
         strings_path = data.get("strings_path", cfg.default_strings_path).strip()
         branch = data.get("branch", cfg.git.default_branch).strip()
         languages = data.get("languages", [])
 
         if not name:
             return jsonify({"error": "Project name is required"}), 400
-        if not local_path:
-            return jsonify({"error": "Local path is required"}), 400
-
-        local = Path(local_path).expanduser().resolve()
-        if not local.is_dir():
-            return jsonify({"error": f"Directory does not exist: {local}"}), 400
-        if not (local / ".git").is_dir():
-            return jsonify({"error": f"Not a git repository: {local}"}), 400
+        if not repo_url:
+            return jsonify({"error": "Repository URL is required"}), 400
 
         if db.get_project(name):
             return jsonify({"error": f"Project '{name}' already exists"}), 409
@@ -66,10 +61,19 @@ def create_app(config: AppConfig | None = None) -> Flask:
         if isinstance(languages, str):
             languages = [l.strip() for l in languages.split(",") if l.strip()]
 
+        clone_base = cfg.git.resolved_clone_directory
+        repo_dir_name = GitService.repo_name_from_url(repo_url)
+        local = clone_base / repo_dir_name
+
+        try:
+            GitService.clone(repo_url, local, branch=branch)
+        except GitError as exc:
+            return jsonify({"error": f"Clone failed: {exc}"}), 400
+
         project = Project(
             id=None,
             name=name,
-            repo_url=str(local),
+            repo_url=repo_url,
             local_path=str(local),
             branch=branch,
             strings_path=strings_path,

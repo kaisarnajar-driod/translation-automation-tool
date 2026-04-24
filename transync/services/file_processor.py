@@ -8,18 +8,21 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
 from transync.services.json_processor import JsonProcessor
+from transync.services.strings_processor import StringsProcessor
 from transync.services.xml_processor import XmlProcessor
 
 if TYPE_CHECKING:
     from transync.models.project import Project
 
-ProcessorType = Union[XmlProcessor, JsonProcessor]
+ProcessorType = Union[XmlProcessor, JsonProcessor, StringsProcessor]
 
 
 def get_processor(strings_path: str) -> ProcessorType:
     """Return the appropriate processor based on the file extension."""
     if strings_path.endswith(".json"):
         return JsonProcessor()
+    if strings_path.endswith(".strings"):
+        return StringsProcessor()
     return XmlProcessor()
 
 

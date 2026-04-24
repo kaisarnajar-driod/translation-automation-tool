@@ -1,13 +1,14 @@
 """Sync orchestrator — coordinates the full sync workflow for a project.
 
 Workflow:
-  1. Parse current strings file (user has already committed their changes)
-  2. Load previous snapshot (from DB or git HEAD~1)
-  3. Diff to detect new/modified strings
-  4. Translate new strings for each target language
-  5. Merge translations into platform-specific language directories
-  6. Commit translation files on the current branch
-  7. Save snapshot
+  1. Pull latest changes from the remote repository
+  2. Parse current strings file from disk
+  3. Load previous snapshot (from DB or git HEAD~1)
+  4. Diff to detect new/modified strings
+  5. Translate new strings for each target language
+  6. Merge translations into platform-specific language directories
+  7. Commit and push translation files
+  8. Save snapshot
 """
 
 from __future__ import annotations
@@ -65,6 +66,9 @@ class SyncOrchestrator:
     ) -> SyncRecord:
         git = GitService(project.local_path)
         processor = get_processor(project.strings_path)
+
+        # Step 0: Pull latest changes from remote
+        git.pull(project.branch)
 
         # Step 1: Parse current strings file from disk
         current_entries = self._step_parse_current(project, processor)
@@ -133,12 +137,12 @@ class SyncOrchestrator:
 
         record.languages_synced = len(target_langs)
 
-        # Step 5: Commit on current branch (no push — local only)
+        # Step 5: Commit and push
         if dry_run:
-            logger.info("[DRY RUN] Would commit %d files", len(affected_files))
+            logger.info("[DRY RUN] Would commit and push %d files", len(affected_files))
             record.status = SyncStatus.SUCCESS
         else:
-            commit_sha = self._step_commit(git, affected_files)
+            commit_sha = self._step_commit_and_push(git, affected_files, project.branch)
             record.commit_sha = commit_sha
             record.status = SyncStatus.SUCCESS
 
@@ -234,7 +238,9 @@ class SyncOrchestrator:
 
         return affected
 
-    def _step_commit(self, git: GitService, files: list[Path]) -> str:
+    def _step_commit_and_push(
+        self, git: GitService, files: list[Path], branch: str
+    ) -> str:
         if not files:
             logger.info("No files to commit")
             return ""
@@ -242,4 +248,8 @@ class SyncOrchestrator:
         logger.info("Committing %d translation files", len(files))
         git.stage_files(files)
         result = git.commit(self._config.git.commit_message)
+
+        logger.info("Pushing translations to remote")
+        git.push(branch)
+
         return result.sha

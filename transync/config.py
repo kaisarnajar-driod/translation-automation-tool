@@ -21,6 +21,11 @@ CONFIG_ENV_VAR = "TRANSYNC_CONFIG"
 class GitConfig(BaseModel):
     default_branch: str = "main"
     commit_message: str = "chore: add translations for new strings"
+    clone_directory: str = "~/.transync/repos"
+
+    @property
+    def resolved_clone_directory(self) -> Path:
+        return Path(self.clone_directory).expanduser()
 
 
 class OpenAIConfig(BaseModel):
