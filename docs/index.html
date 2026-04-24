@@ -701,6 +701,103 @@
 
     .host-badge .host-icon { font-size: 24px; }
 
+    /* ── Translation Preview ─────────────────────────── */
+
+    .translation-preview {
+      margin-top: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    .tp-source {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-width: 140px;
+    }
+
+    .tp-source .tp-lang {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+    }
+
+    .tp-source .tp-string {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .tp-arrow {
+      color: var(--accent);
+      font-size: 24px;
+      font-weight: 700;
+      flex-shrink: 0;
+      animation: pulse-arrow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-arrow {
+      0%, 100% { opacity: 0.5; transform: translateX(0); }
+      50% { opacity: 1; transform: translateX(4px); }
+    }
+
+    .tp-targets {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .tp-target {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      min-width: 110px;
+      opacity: 0;
+      animation: fade-in-target 0.5s ease forwards;
+    }
+
+    .tp-target:nth-child(1) { animation-delay: 0.3s; }
+    .tp-target:nth-child(2) { animation-delay: 0.6s; }
+    .tp-target:nth-child(3) { animation-delay: 0.9s; }
+    .tp-target:nth-child(4) { animation-delay: 1.2s; }
+    .tp-target:nth-child(5) { animation-delay: 1.5s; }
+
+    @keyframes fade-in-target {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tp-target .tp-lang {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+    }
+
+    .tp-target .tp-string {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
     /* ── Footer ───────────────────────────────────────── */
 
     footer {
@@ -759,6 +856,36 @@
   <div class="hero-actions">
     <a href="#quickstart" class="btn-hero btn-hero-primary">Get Started</a>
     <a href="#demo" class="btn-hero btn-hero-secondary">See Demo</a>
+  </div>
+
+  <div class="translation-preview">
+    <div class="tp-source">
+      <span class="tp-lang">English</span>
+      <span class="tp-string">"Welcome"</span>
+    </div>
+    <div class="tp-arrow">&#10132;</div>
+    <div class="tp-targets">
+      <div class="tp-target">
+        <span class="tp-lang">Hindi</span>
+        <span class="tp-string">&#x0938;&#x094D;&#x0935;&#x093E;&#x0917;&#x0924;</span>
+      </div>
+      <div class="tp-target">
+        <span class="tp-lang">Arabic</span>
+        <span class="tp-string">&#x0645;&#x0631;&#x062D;&#x0628;&#x0627;&#x064B;</span>
+      </div>
+      <div class="tp-target">
+        <span class="tp-lang">Thai</span>
+        <span class="tp-string">&#x0E22;&#x0E34;&#x0E19;&#x0E14;&#x0E35;</span>
+      </div>
+      <div class="tp-target">
+        <span class="tp-lang">French</span>
+        <span class="tp-string">Bienvenue</span>
+      </div>
+      <div class="tp-target">
+        <span class="tp-lang">Spanish</span>
+        <span class="tp-string">Bienvenido</span>
+      </div>
+    </div>
   </div>
 
   <div class="hosts-row">
