@@ -665,7 +665,8 @@ async function loadSchedulerStatus() {
     dot.className = `dot ${data.enabled ? 'on' : 'off'}`;
     if (data.enabled && data.next_run) {
       const next = new Date(data.next_run);
-      text.textContent = `Daily sync at ${data.scheduled_time} — next run: ${next.toLocaleString()}`;
+      const utc = next.toISOString().replace('T', ', ').replace(/\.\d+Z$/, ' UTC');
+      text.textContent = `Daily sync at ${data.scheduled_time} UTC — next run: ${utc}`;
     } else {
       text.textContent = `Daily sync: disabled`;
     }
