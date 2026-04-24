@@ -4,7 +4,7 @@ A CLI and web-based tool that automates string localization across projects. Pro
 
 ## Features
 
-- **Git-native workflow** — provide a repo URL; Transync clones it, pulls latest changes on every sync, commits translations, and pushes back automatically
+- **Git-native workflow** — provide a repo URL from GitHub, Bitbucket, GitLab, or any Git host; Transync clones it, pulls latest changes on every sync, commits translations, and pushes back automatically
 - **Multi-platform support** — Android (XML), iOS (.lproj), React (JSON), Java Backend (JSON), and more — auto-detected from the strings file path
 - **Google Translate powered** — uses Google's Neural Machine Translation via `deep-translator` (free, no API key needed)
 - **Smart diff detection** — translates new strings, optionally detects modified strings, and automatically removes deleted strings from all language files
@@ -65,7 +65,7 @@ Detection rules (checked in order):
 
 ```bash
 # Clone the repo
-git clone git@bitbucket.org:lktech/translation-automation-tool.git
+git clone git@github.com:kaisarnajar-driod/translation-automation-tool.git
 cd translation-automation-tool
 
 # Install
@@ -125,18 +125,18 @@ Open `http://localhost:8090` in your browser. From there you can:
 ### Option 2: CLI
 
 ```bash
-# Add an Android project (repo is cloned automatically)
+# Add a project from GitHub
 transync add my-android-app https://github.com/org/my-app.git \
   --strings-path app/src/main/res/values/strings.xml \
   --languages hi,ar,fr,es
 
-# Add an iOS project
-transync add my-ios-app https://github.com/org/my-ios-app.git \
+# Add a project from Bitbucket (SSH)
+transync add my-ios-app git@bitbucket.org:team/my-ios-app.git \
   --strings-path MyApp/en.lproj/Localizable.strings \
   --languages hi,ar,fr,es
 
-# Add a React project (JSON)
-transync add my-react-app https://github.com/org/my-react-app.git \
+# Add a project from GitLab
+transync add my-react-app https://gitlab.com/group/my-react-app.git \
   --strings-path src/locales/en/strings.json \
   --languages hi,ar,fr,es
 

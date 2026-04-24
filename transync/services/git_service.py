@@ -95,9 +95,13 @@ class GitService:
     def repo_name_from_url(url: str) -> str:
         """Extract a filesystem-safe repo name from a git URL.
 
+        Works with GitHub, Bitbucket, GitLab, and any Git hosting provider.
+
         Examples:
-          https://github.com/org/my-app.git -> org_my-app
-          git@github.com:org/my-app.git     -> org_my-app
+          https://github.com/org/my-app.git      -> org_my-app
+          git@github.com:org/my-app.git           -> org_my-app
+          git@bitbucket.org:team/project.git      -> team_project
+          https://gitlab.com/group/repo.git       -> group_repo
         """
         url = url.rstrip("/")
         if url.endswith(".git"):
