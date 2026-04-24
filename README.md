@@ -57,11 +57,29 @@ Detection rules (checked in order):
 
 ## Quick Start
 
-### Prerequisites
+### Option A: Docker (Recommended)
+
+Run a single command — no Python, no dependencies, no setup:
+
+```bash
+git clone git@github.com:kaisarnajar-driod/translation-automation-tool.git
+cd translation-automation-tool
+docker compose up
+```
+
+Open `http://localhost:8090` and you're ready to go.
+
+**Private repos (SSH)?** Your `~/.ssh` keys are mounted read-only into the container automatically. If your keys are in a different location, edit the volume mount in `docker-compose.yml`.
+
+**Persist data?** The SQLite database and cloned repos are stored in a Docker volume (`transync-data`) that survives `docker compose down/up`.
+
+### Option B: Manual Install
+
+#### Prerequisites
 
 - Python 3.9+
 
-### Installation
+#### Installation
 
 ```bash
 # Clone the repo

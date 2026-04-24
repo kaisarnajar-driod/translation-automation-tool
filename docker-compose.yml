@@ -1,0 +1,12 @@
+services:
+  transync:
+    build: .
+    ports:
+      - "8090:8090"
+    volumes:
+      - transync-data:/root/.transync
+      - ~/.ssh:/root/.ssh:ro
+    restart: unless-stopped
+
+volumes:
+  transync-data:
