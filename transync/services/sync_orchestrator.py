@@ -96,12 +96,14 @@ class SyncOrchestrator:
         affected_files: list[Path] = []
 
         # Step 4a: Full translation for newly added languages
+        new_lang_key_count = 0
         if new_langs and translatable_entries:
             logger.info("New languages detected: %s — translating all strings", ", ".join(new_langs))
             new_lang_files = self._step_translate_and_merge(
                 project, translatable_entries, new_langs, processor
             )
             affected_files.extend(new_lang_files)
+            new_lang_key_count = len(translatable_entries)
 
         if not diff.has_changes and not new_langs:
             logger.info("No new, modified, or removed strings found — nothing to do")
@@ -111,7 +113,7 @@ class SyncOrchestrator:
             self._db.save_snapshot(project.id, current_dict)  # type: ignore[arg-type]
             return record
 
-        record.new_keys = len(diff.new_entries)
+        record.new_keys = len(diff.new_entries) + new_lang_key_count
         record.modified_keys = len(diff.modified_entries)
         record.removed_keys = len(diff.removed_keys)
 
