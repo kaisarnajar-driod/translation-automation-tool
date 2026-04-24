@@ -2,10 +2,13 @@
 
 A CLI and web-based tool that automates string localization across projects. Provide a Git repository URL, configure target languages, hit **Sync**, and Transync clones the repo, translates new strings using Google Translate, commits, and pushes — no API key required.
 
+**Live Demo & Docs:** [kaisarnajar-driod.github.io/translation-automation-tool](https://kaisarnajar-driod.github.io/translation-automation-tool/)
+
 ## Features
 
 - **Git-native workflow** — provide a repo URL from GitHub, Bitbucket, GitLab, or any Git host; Transync clones it, pulls latest changes on every sync, commits translations, and pushes back automatically
-- **Multi-platform support** — Android (XML), iOS (.lproj), React (JSON), Java Backend (JSON), and more — auto-detected from the strings file path
+- **Docker-ready** — one command to build and run, no Python or dependencies needed on the host
+- **Multi-platform support** — Android (XML), iOS (.strings), React (JSON), Java Backend (JSON), and more — auto-detected from the strings file path
 - **Google Translate powered** — uses Google's Neural Machine Translation via `deep-translator` (free, no API key needed)
 - **Smart diff detection** — translates new strings, optionally detects modified strings, and automatically removes deleted strings from all language files
 - **Placeholder safety** — validates that `%s`, `%1$s`, HTML tags survive translation; falls back to source on corruption
@@ -14,17 +17,18 @@ A CLI and web-based tool that automates string localization across projects. Pro
 - **Beautiful CLI** — Rich-powered tables, progress indicators, and colored output
 - **Dry-run mode** — preview what would be translated without writing any files
 - **Per-project languages** — each project defines its own set of target languages
+- **Daily scheduler** — configure automatic sync for all projects at a specified time
 
 ## Supported Platforms
 
 Transync auto-detects your platform from the `strings_path` you provide and writes translated files to the correct location:
 
-| Platform       | Source `strings_path` example                     | Translated output for `hi`                          |
-|----------------|---------------------------------------------------|-----------------------------------------------------|
-| **Android**    | `app/src/main/res/values/strings.xml`             | `app/src/main/res/values-hi/strings.xml`            |
-| **iOS**        | `MyApp/en.lproj/Localizable.strings`              | `MyApp/hi.lproj/Localizable.strings`                |
-| **React**      | `src/locales/en/strings.json`                     | `src/locales/hi/strings.json`                       |
-| **Java Backend** | `src/main/resources/i18n/en/strings.json`       | `src/main/resources/i18n/hi/strings.json`           |
+| Platform         | Format    | Source `strings_path` example                 | Translated output for `hi`                       |
+|------------------|-----------|-----------------------------------------------|--------------------------------------------------|
+| **Android**      | XML       | `app/src/main/res/values/strings.xml`         | `app/src/main/res/values-hi/strings.xml`         |
+| **iOS**          | .strings  | `MyApp/en.lproj/Localizable.strings`          | `MyApp/hi.lproj/Localizable.strings`             |
+| **React**        | JSON      | `src/locales/en/strings.json`                 | `src/locales/hi/strings.json`                    |
+| **Java Backend** | JSON      | `src/main/resources/i18n/en/strings.json`     | `src/main/resources/i18n/hi/strings.json`        |
 
 Detection rules (checked in order):
 1. Parent directory is `values` or `values-*` — uses Android convention (`values-{lang}/`)
@@ -42,12 +46,12 @@ Detection rules (checked in order):
 │              Sync Orchestrator                    │
 └──┬────────┬────────┬────────┬────────────────────┘
    │        │        │        │
-┌──▼───┐ ┌──▼───┐ ┌──▼───┐ ┌──▼─────────────────┐
-│ Git  │ │ Diff │ │ File │ │ Translation Service │
-│ Svc  │ │ Eng. │ │ Proc │ │ └─ Google Translate │
-│clone │ └──────┘ │XML/  │ │   (deep-translator) │
-│pull  │          │JSON  │ └─────────────────────┘
-│push  │          └──────┘
+┌──▼───┐ ┌──▼───┐ ┌──▼──────┐ ┌──▼─────────────────┐
+│ Git  │ │ Diff │ │ File    │ │ Translation Service │
+│ Svc  │ │ Eng. │ │ Proc    │ │ └─ Google Translate │
+│clone │ └──────┘ │XML/JSON │ │   (deep-translator) │
+│pull  │          │.strings │ └─────────────────────┘
+│push  │          └─────────┘
 └──────┘
 ┌──────────────────────────────────────────────────┐
 │               SQLite Database                    │
@@ -59,19 +63,87 @@ Detection rules (checked in order):
 
 ### Option A: Docker (Recommended)
 
-Run a single command — no Python, no dependencies, no setup:
+No Python, no pip, no virtual environments needed — just Docker.
+
+#### 1. Build the image
 
 ```bash
 git clone git@github.com:kaisarnajar-driod/translation-automation-tool.git
 cd translation-automation-tool
-docker compose up
+docker build -t transync .
 ```
 
-Open `http://localhost:8090` and you're ready to go.
+#### 2. Run the container
 
-**Private repos (SSH)?** Your `~/.ssh` keys are mounted read-only into the container automatically. If your keys are in a different location, edit the volume mount in `docker-compose.yml`.
+```bash
+docker run -d \
+  --name transync \
+  -p 8090:8090 \
+  -v transync-data:/root/.transync \
+  -v ~/.ssh:/root/.ssh:ro \
+  transync
+```
 
-**Persist data?** The SQLite database and cloned repos are stored in a Docker volume (`transync-data`) that survives `docker compose down/up`.
+Open **http://localhost:8090** — the web UI is ready.
+
+#### What the flags mean
+
+| Flag | Purpose |
+|------|---------|
+| `-d` | Run in background (detached) |
+| `--name transync` | Name the container for easy reference |
+| `-p 8090:8090` | Map port 8090 on host to the container |
+| `-v transync-data:/root/.transync` | Persist database and cloned repos across restarts |
+| `-v ~/.ssh:/root/.ssh:ro` | Mount SSH keys (read-only) for private repo access |
+
+#### Docker management commands
+
+```bash
+# View logs
+docker logs transync
+
+# Follow logs in real time
+docker logs -f transync
+
+# Stop the container
+docker stop transync
+
+# Start it again
+docker start transync
+
+# Restart
+docker restart transync
+
+# Remove the container (data volume is preserved)
+docker rm -f transync
+
+# Remove the data volume (deletes database and cloned repos)
+docker volume rm transync-data
+
+# Rebuild after pulling new changes
+git pull
+docker build -t transync .
+docker rm -f transync
+docker run -d --name transync -p 8090:8090 -v transync-data:/root/.transync -v ~/.ssh:/root/.ssh:ro transync
+```
+
+#### Using Docker Compose (alternative)
+
+If you have Docker Compose installed, you can use the included `docker-compose.yml`:
+
+```bash
+# Start (builds automatically on first run)
+docker compose up -d
+
+# Rebuild after code changes
+docker compose up -d --build
+
+# Stop
+docker compose down
+
+# View logs
+docker compose logs -f
+```
 
 ### Option B: Manual Install
 
@@ -82,15 +154,12 @@ Open `http://localhost:8090` and you're ready to go.
 #### Installation
 
 ```bash
-# Clone the repo
 git clone git@github.com:kaisarnajar-driod/translation-automation-tool.git
 cd translation-automation-tool
-
-# Install
 pip install -e .
 ```
 
-### Generate Config
+#### Generate Config
 
 ```bash
 transync init
@@ -98,7 +167,7 @@ transync init
 
 This creates a `config.yaml` in the current directory. The default translation provider is `google_free` which requires no API key.
 
-### Configuration
+#### Configuration
 
 Edit `config.yaml` to set your preferences:
 
@@ -123,9 +192,11 @@ Repos are cloned automatically to `~/.transync/repos/` when you add a project. T
 
 ## How to Use
 
-### Option 1: Web UI (Recommended)
+### Web UI (Recommended)
 
-Start the web server:
+If running via Docker, the web UI is already available at `http://localhost:8090`.
+
+For manual installs, start the server:
 
 ```bash
 transync serve
@@ -135,12 +206,15 @@ transync serve --port 9000
 
 Open `http://localhost:8090` in your browser. From there you can:
 
-1. **Add a project** — enter the project name, Git repo URL, strings file path, and target languages. The repo is cloned automatically.
+1. **Add a project** — enter the project name, Git repo URL (GitHub, Bitbucket, GitLab, etc.), strings file path, and target languages. The repo is cloned automatically.
 2. **Sync translations** — click the **Sync** button on any project. Transync pulls, translates, commits, and pushes.
-3. **View results** — a modal shows how many keys were added, modified, removed, and for how many languages
-4. **Remove projects** — click **Remove** to stop tracking a project
+3. **View results** — a modal shows how many keys were added, modified, removed, and for how many languages.
+4. **Sync All** — sync every project at once, or configure the daily scheduler to do it automatically.
+5. **Remove projects** — click **Remove** to stop tracking a project.
 
-### Option 2: CLI
+### CLI
+
+The CLI is available inside the Docker container (`docker exec transync transync <command>`) or directly if installed manually.
 
 ```bash
 # Add a project from GitHub
@@ -192,7 +266,7 @@ transync config
 When you run `transync sync <project>` (or click Sync in the web UI):
 
 1. **Pull** — fetches the latest changes from the remote repository
-2. **Parse** — reads the current strings file from disk (XML or JSON, auto-detected)
+2. **Parse** — reads the current strings file from disk (XML, JSON, or .strings — auto-detected)
 3. **Snapshot** — loads the previous string state from the database (or falls back to the previous version of the file)
 4. **Diff** — identifies new, modified (if enabled), and removed keys
 5. **Translate** — sends new/modified strings to Google Translate for each target language
