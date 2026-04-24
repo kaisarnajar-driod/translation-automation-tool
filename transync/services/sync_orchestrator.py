@@ -1,11 +1,11 @@
 """Sync orchestrator — coordinates the full sync workflow for a project.
 
 Workflow:
-  1. Parse current strings.xml (user has already committed their changes)
+  1. Parse current strings file (user has already committed their changes)
   2. Load previous snapshot (from DB or git HEAD~1)
   3. Diff to detect new/modified strings
   4. Translate new strings for each target language
-  5. Merge translations into values-{lang}/strings.xml
+  5. Merge translations into platform-specific language directories
   6. Commit translation files on the current branch
   7. Save snapshot
 """
@@ -20,9 +20,9 @@ from transync.config import AppConfig
 from transync.database import Database
 from transync.models.project import Project, StringEntry, SyncRecord, SyncStatus
 from transync.services.diff_engine import DiffEngine
+from transync.services.file_processor import get_lang_file_path, get_processor
 from transync.services.git_service import GitService
 from transync.services.translation_service import TranslationService
-from transync.services.xml_processor import XmlProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,6 @@ class SyncOrchestrator:
         self._config = config
         self._db = db
         self._translation_svc = TranslationService(config)
-        self._xml = XmlProcessor()
         self._diff = DiffEngine()
 
     def sync_project(self, project: Project, dry_run: bool | None = None) -> SyncRecord:
@@ -65,13 +64,14 @@ class SyncOrchestrator:
         self, project: Project, record: SyncRecord, dry_run: bool
     ) -> SyncRecord:
         git = GitService(project.local_path)
+        processor = get_processor(project.strings_path)
 
-        # Step 1: Parse current strings.xml from disk
-        current_entries = self._step_parse_current(project)
-        current_dict = XmlProcessor.entries_to_dict(current_entries)
+        # Step 1: Parse current strings file from disk
+        current_entries = self._step_parse_current(project, processor)
+        current_dict = processor.entries_to_dict(current_entries)
 
         # Step 2: Get previous snapshot (DB or git HEAD~1)
-        previous_dict = self._step_get_previous(project, git)
+        previous_dict = self._step_get_previous(project, git, processor)
 
         # Step 3: Diff
         diff = self._diff.compute_from_dicts(
@@ -84,7 +84,7 @@ class SyncOrchestrator:
         if not target_langs:
             raise SyncError("No target languages configured for this project")
 
-        # Detect languages that don't have a strings.xml yet (newly added)
+        # Detect languages that don't have a strings file yet (newly added)
         new_langs = self._detect_new_languages(project, target_langs)
         existing_langs = [l for l in target_langs if l not in new_langs]
 
@@ -95,7 +95,7 @@ class SyncOrchestrator:
         if new_langs and translatable_entries:
             logger.info("New languages detected: %s — translating all strings", ", ".join(new_langs))
             new_lang_files = self._step_translate_and_merge(
-                project, translatable_entries, new_langs
+                project, translatable_entries, new_langs, processor
             )
             affected_files.extend(new_lang_files)
 
@@ -116,7 +116,7 @@ class SyncOrchestrator:
         # Step 4b: Translate + merge new/modified strings for existing languages
         if entries_to_translate and existing_langs:
             merge_files = self._step_translate_and_merge(
-                project, entries_to_translate, existing_langs
+                project, entries_to_translate, existing_langs, processor
             )
             for f in merge_files:
                 if f not in affected_files:
@@ -125,7 +125,7 @@ class SyncOrchestrator:
         # Step 4c: Remove deleted keys from all language files
         if diff.removed_keys:
             removed_files = self._step_remove_deleted_keys(
-                project, diff.removed_keys, target_langs
+                project, diff.removed_keys, target_langs, processor
             )
             for f in removed_files:
                 if f not in affected_files:
@@ -153,23 +153,23 @@ class SyncOrchestrator:
 
     @staticmethod
     def _detect_new_languages(project: Project, target_langs: list[str]) -> list[str]:
-        """Return languages that don't have a strings.xml file yet."""
+        """Return languages that don't have a strings file yet."""
         new_langs: list[str] = []
         for lang in target_langs:
-            lang_file = project.absolute_res_directory / f"values-{lang}" / "strings.xml"
-            if not lang_file.is_file():
+            if not get_lang_file_path(project, lang).is_file():
                 new_langs.append(lang)
         return new_langs
 
-    def _step_parse_current(self, project: Project) -> list[StringEntry]:
-        logger.info("Parsing current strings.xml")
+    @staticmethod
+    def _step_parse_current(project: Project, processor) -> list[StringEntry]:
+        logger.info("Parsing current strings file")
         strings_path = project.absolute_strings_path
         if not strings_path.is_file():
-            raise SyncError(f"strings.xml not found at {strings_path}")
-        return self._xml.parse_strings(strings_path)
+            raise SyncError(f"Strings file not found at {strings_path}")
+        return processor.parse_strings(strings_path)
 
     def _step_get_previous(
-        self, project: Project, git: GitService
+        self, project: Project, git: GitService, processor
     ) -> dict[str, str]:
         logger.info("Loading previous snapshot")
         snapshot = self._db.get_latest_snapshot(project.id)  # type: ignore[arg-type]
@@ -177,12 +177,11 @@ class SyncOrchestrator:
             logger.info("Using DB snapshot (%d keys)", len(snapshot))
             return snapshot
 
-        # Fall back to previous git commit
         prev_content = git.get_file_content_at_commit(project.strings_path)
         if prev_content:
-            entries = self._xml.parse_strings_from_content(prev_content)
+            entries = processor.parse_strings_from_content(prev_content)
             logger.info("Using git HEAD~1 snapshot (%d keys)", len(entries))
-            return XmlProcessor.entries_to_dict(entries)
+            return processor.entries_to_dict(entries)
 
         logger.info("No previous snapshot — treating all strings as new")
         return {}
@@ -192,16 +191,16 @@ class SyncOrchestrator:
         project: Project,
         entries: list[StringEntry],
         target_langs: list[str],
+        processor,
     ) -> list[Path]:
         logger.info("Translating %d entries for %d languages", len(entries), len(target_langs))
         affected: list[Path] = []
 
         for lang in target_langs:
             translated = self._translation_svc.translate_entries(entries, lang)
-            lang_dir = project.absolute_res_directory / f"values-{lang}"
-            lang_file = lang_dir / "strings.xml"
+            lang_file = get_lang_file_path(project, lang)
 
-            added = self._xml.merge_into_file(
+            added = processor.merge_into_file(
                 lang_file, translated, sort_keys=self._config.sync.sort_keys
             )
             if added:
@@ -217,13 +216,14 @@ class SyncOrchestrator:
         project: Project,
         removed_keys: list[str],
         target_langs: list[str],
+        processor,
     ) -> list[Path]:
         logger.info("Removing %d deleted keys from %d languages", len(removed_keys), len(target_langs))
         affected: list[Path] = []
 
         for lang in target_langs:
-            lang_file = project.absolute_res_directory / f"values-{lang}" / "strings.xml"
-            removed = self._xml.remove_keys_from_file(
+            lang_file = get_lang_file_path(project, lang)
+            removed = processor.remove_keys_from_file(
                 lang_file, removed_keys, sort_keys=self._config.sync.sort_keys
             )
             if removed:

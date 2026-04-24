@@ -53,7 +53,7 @@ class SyncRecord:
 
 @dataclass
 class StringEntry:
-    """A single <string> element from a strings XML resource file."""
+    """A single translatable string entry from a resource file (XML or JSON)."""
     key: str
     value: str
     translatable: bool = True
