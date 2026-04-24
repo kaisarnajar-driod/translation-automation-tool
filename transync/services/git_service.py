@@ -44,6 +44,10 @@ class GitService:
             logger.info("Directory %s already exists, opening as repo", dest)
             svc = cls(dest)
             _ = svc.repo
+            current_url = svc.repo.remotes.origin.url
+            if current_url != url:
+                logger.info("Updating origin URL: %s → %s", current_url, url)
+                svc.repo.remotes.origin.set_url(url)
             return svc
         logger.info("Cloning %s → %s (branch=%s)", url, dest, branch)
         try:
