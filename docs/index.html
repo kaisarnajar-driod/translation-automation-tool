@@ -748,13 +748,13 @@
 
 <!-- ─── Hero ──────────────────────────────────────────────────────── -->
 <div class="hero">
-  <div class="hero-badge">Open Source &bull; Free &bull; No API Key</div>
+  <div class="hero-badge">Docker-Ready &bull; Free &bull; No API Key</div>
   <h1>
     Automate translations<br/>
     <span class="grad">for every platform</span>
   </h1>
   <p>
-    Point Transync at your Git repo. It clones, detects new strings, translates them via Google Translate, commits, and pushes — fully automated.
+    Run with Docker. Point at your Git repo. Transync clones, detects new strings, translates via Google Translate, commits, and pushes — fully automated.
   </p>
   <div class="hero-actions">
     <a href="#quickstart" class="btn-hero btn-hero-primary">Get Started</a>
@@ -778,8 +778,8 @@
   <div class="features-grid">
     <div class="feature-card">
       <div class="feature-icon fi-purple">&#128268;</div>
-      <h3>Git-Native Workflow</h3>
-      <p>Provide a repo URL from GitHub, Bitbucket, GitLab, or any host. Transync clones, pulls, translates, commits, and pushes automatically.</p>
+      <h3>Docker-Ready</h3>
+      <p>One command to build and run. No Python, no pip, no virtual environments needed on your machine — just Docker.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon fi-green">&#127760;</div>
@@ -788,8 +788,8 @@
     </div>
     <div class="feature-card">
       <div class="feature-icon fi-blue">&#128269;</div>
-      <h3>Smart Diff Detection</h3>
-      <p>Only translates new or modified strings. Automatically removes deleted keys from all language files. Incremental, snapshot-based.</p>
+      <h3>Git-Native Workflow</h3>
+      <p>Provide a repo URL from GitHub, Bitbucket, GitLab, or any host. Transync clones, pulls, translates, commits, and pushes automatically.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon fi-yellow">&#128737;</div>
@@ -802,9 +802,9 @@
       <p>Dark-themed single-page UI to add projects, trigger syncs, view results, and manage languages — no terminal needed.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon fi-red">&#9000;</div>
-      <h3>Beautiful CLI</h3>
-      <p>Rich-powered tables, progress bars, colored output, and dry-run mode. Everything you need from the command line.</p>
+      <div class="feature-icon fi-red">&#128269;</div>
+      <h3>Smart Diff Detection</h3>
+      <p>Only translates new or modified strings. Removes deleted keys from all language files. Incremental, snapshot-based.</p>
     </div>
   </div>
 </section>
@@ -817,103 +817,35 @@
 
   <div class="demo-wrapper">
     <div class="demo-steps">
-      <button class="demo-step-btn active" onclick="showDemo('add')">1. Add Project</button>
-      <button class="demo-step-btn" onclick="showDemo('sync')">2. Sync Translations</button>
-      <button class="demo-step-btn" onclick="showDemo('result')">3. View Results</button>
-      <button class="demo-step-btn" onclick="showDemo('web')">4. Web UI</button>
+      <button class="demo-step-btn active" onclick="showDemo('start')">1. Start with Docker</button>
+      <button class="demo-step-btn" onclick="showDemo('web')">2. Open Web UI</button>
+      <button class="demo-step-btn" onclick="showDemo('sync')">3. Sync Translations</button>
+      <button class="demo-step-btn" onclick="showDemo('manage')">4. Manage</button>
     </div>
 
-    <!-- CLI Demos -->
-    <div class="terminal" id="demo-add">
+    <!-- Docker Start -->
+    <div class="terminal" id="demo-start">
       <div class="terminal-bar">
         <div class="terminal-dot r"></div>
         <div class="terminal-dot y"></div>
         <div class="terminal-dot g"></div>
-        <div class="terminal-title">Terminal — Add a project</div>
+        <div class="terminal-title">Terminal — Start Transync with Docker</div>
       </div>
       <div class="terminal-body">
-        <span class="comment"># Add an Android project from GitHub</span><br/>
-        <span class="prompt">$ </span><span class="cmd">transync add</span> <span class="arg">my-android-app</span> <span class="arg">https://github.com/org/my-app.git</span> \<br/>
-        &nbsp;&nbsp;<span class="flag">--strings-path</span> <span class="arg">app/src/main/res/values/strings.xml</span> \<br/>
-        &nbsp;&nbsp;<span class="flag">--languages</span> <span class="arg">hi,ar,fr,es,de</span><br/>
+        <span class="comment"># Clone and build</span><br/>
+        <span class="prompt">$ </span><span class="cmd">git clone</span> <span class="arg">git@github.com:kaisarnajar-driod/translation-automation-tool.git</span><br/>
+        <span class="prompt">$ </span><span class="cmd">cd</span> <span class="arg">translation-automation-tool</span><br/>
+        <span class="prompt">$ </span><span class="cmd">docker build</span> <span class="flag">-t</span> <span class="arg">transync</span> <span class="arg">.</span><br/>
         <br/>
-        <span class="output">Cloning https://github.com/org/my-app.git → ~/.transync/repos/org_my-app ...</span><br/>
-        <span class="success">✓ Project my-android-app added successfully.</span><br/>
+        <span class="output">Successfully built transync:latest</span><br/>
         <br/>
-        <span class="comment"># Works with any Git host</span><br/>
-        <span class="prompt">$ </span><span class="cmd">transync add</span> <span class="arg">my-ios-app</span> <span class="arg">git@bitbucket.org:team/ios-app.git</span> \<br/>
-        &nbsp;&nbsp;<span class="flag">--strings-path</span> <span class="arg">MyApp/en.lproj/Localizable.strings</span> \<br/>
-        &nbsp;&nbsp;<span class="flag">--languages</span> <span class="arg">hi,ar,fr</span><br/>
+        <span class="comment"># Run the container</span><br/>
+        <span class="prompt">$ </span><span class="cmd">docker run</span> <span class="flag">-d</span> <span class="flag">--name</span> <span class="arg">transync</span> <span class="flag">-p</span> <span class="arg">8090:8090</span> \<br/>
+        &nbsp;&nbsp;<span class="flag">-v</span> <span class="arg">transync-data:/root/.transync</span> \<br/>
+        &nbsp;&nbsp;<span class="flag">-v</span> <span class="arg">~/.ssh:/root/.ssh:ro</span> \<br/>
+        &nbsp;&nbsp;<span class="arg">transync</span><br/>
         <br/>
-        <span class="output">Cloning git@bitbucket.org:team/ios-app.git → ~/.transync/repos/team_ios-app ...</span><br/>
-        <span class="success">✓ Project my-ios-app added successfully.</span>
-      </div>
-    </div>
-
-    <div class="terminal" id="demo-sync" style="display:none">
-      <div class="terminal-bar">
-        <div class="terminal-dot r"></div>
-        <div class="terminal-dot y"></div>
-        <div class="terminal-dot g"></div>
-        <div class="terminal-title">Terminal — Sync translations</div>
-      </div>
-      <div class="terminal-body">
-        <span class="prompt">$ </span><span class="cmd">transync sync</span> <span class="arg">my-android-app</span><br/>
-        <br/>
-        <span class="output">Pulling latest changes from origin/main...</span><br/>
-        <span class="output">Parsing app/src/main/res/values/strings.xml (24 keys)</span><br/>
-        <span class="output">Diffing against last snapshot...</span><br/>
-        <span class="output">  → 5 new keys found</span><br/>
-        <span class="output">  → 1 key removed</span><br/>
-        <br/>
-        <span class="output">Translating 5 keys × 5 languages = 25 translations</span><br/>
-        <span class="output">  [hi] ████████████████████████ 5/5</span><br/>
-        <span class="output">  [ar] ████████████████████████ 5/5</span><br/>
-        <span class="output">  [fr] ████████████████████████ 5/5</span><br/>
-        <span class="output">  [es] ████████████████████████ 5/5</span><br/>
-        <span class="output">  [de] ████████████████████████ 5/5</span><br/>
-        <br/>
-        <span class="output">Validating placeholders... all clean</span><br/>
-        <span class="output">Merging into values-hi, values-ar, values-fr, values-es, values-de</span><br/>
-        <span class="output">Removing deleted keys from all language files</span><br/>
-        <span class="output">Committing: chore: add translations for new strings</span><br/>
-        <span class="output">Pushing to origin/main...</span><br/>
-        <br/>
-        <span class="success">Status: success</span><br/>
-        <span class="output">  New keys        5</span><br/>
-        <span class="output">  Removed keys    1</span><br/>
-        <span class="output">  Languages       5</span><br/>
-        <span class="output">  Commit          a3f7c2d1e9b0</span>
-      </div>
-    </div>
-
-    <div class="terminal" id="demo-result" style="display:none">
-      <div class="terminal-bar">
-        <div class="terminal-dot r"></div>
-        <div class="terminal-dot y"></div>
-        <div class="terminal-dot g"></div>
-        <div class="terminal-title">Terminal — View history &amp; list</div>
-      </div>
-      <div class="terminal-body">
-        <span class="prompt">$ </span><span class="cmd">transync list</span><br/>
-        <br/>
-        <span class="output">┌───────────────────── Managed Projects ─────────────────────┐</span><br/>
-        <span class="output">│ Name             │ Repository                  │ Languages │</span><br/>
-        <span class="output">├──────────────────┼─────────────────────────────┼───────────┤</span><br/>
-        <span class="output">│ my-android-app   │ github.com/org/my-app       │ hi,ar,fr… │</span><br/>
-        <span class="output">│ my-ios-app       │ bitbucket.org:team/ios-app   │ hi,ar,fr  │</span><br/>
-        <span class="output">│ my-react-app     │ gitlab.com/group/react-app   │ hi,es,de  │</span><br/>
-        <span class="output">└──────────────────┴─────────────────────────────┴───────────┘</span><br/>
-        <br/>
-        <span class="prompt">$ </span><span class="cmd">transync history</span> <span class="arg">my-android-app</span><br/>
-        <br/>
-        <span class="output">┌────────────────── Sync History — my-android-app ──────────────────┐</span><br/>
-        <span class="output">│ # │ Status  │ New │ Modified │ Languages │ Commit       │ Started  │</span><br/>
-        <span class="output">├───┼─────────┼─────┼──────────┼───────────┼──────────────┼──────────┤</span><br/>
-        <span class="output">│ 3 │</span> <span class="success">success</span> <span class="output">│  5  │    0     │     5     │ a3f7c2d1e9b0 │ 09:15:22 │</span><br/>
-        <span class="output">│ 2 │</span> <span class="success">success</span> <span class="output">│ 12  │    0     │     5     │ f1b8e3a0c7d4 │ Yesterday│</span><br/>
-        <span class="output">│ 1 │</span> <span class="success">success</span> <span class="output">│ 24  │    0     │     5     │ 8c2d5f1a3e90 │ Apr 21   │</span><br/>
-        <span class="output">└───┴─────────┴─────┴──────────┴───────────┴──────────────┴──────────┘</span>
+        <span class="success">Container started. Web UI at http://localhost:8090</span>
       </div>
     </div>
 
@@ -929,11 +861,11 @@
         <div class="mock-card">
           <h4>Add Project</h4>
           <div class="mock-form-row">
-            <div class="mock-input">my-react-app</div>
-            <div class="mock-input">https://gitlab.com/group/react-app.git</div>
+            <div class="mock-input">sample-android-app</div>
+            <div class="mock-input">git@github.com:kaisarnajar-driod/sample-android-app.git</div>
           </div>
           <div class="mock-form-row">
-            <div class="mock-input">src/locales/en/strings.json</div>
+            <div class="mock-input">app/src/main/res/values/strings.xml</div>
             <div class="mock-input">hi, ar, fr, es</div>
           </div>
           <div class="mock-btn">Add Project</div>
@@ -941,14 +873,13 @@
 
         <div class="mock-project">
           <div class="mock-project-info">
-            <span class="mock-project-name">my-android-app</span>
-            <span class="mock-project-url">github.com/org/my-app</span>
+            <span class="mock-project-name">sample-android-app</span>
+            <span class="mock-project-url">git@github.com:kaisarnajar-driod/sample-android-app.git</span>
             <div class="mock-project-langs">
               <span class="lang-tag">hi</span>
               <span class="lang-tag">ar</span>
               <span class="lang-tag">fr</span>
               <span class="lang-tag">es</span>
-              <span class="lang-tag">de</span>
             </div>
           </div>
           <div class="mock-sync-btn">Sync</div>
@@ -956,8 +887,8 @@
 
         <div class="mock-project">
           <div class="mock-project-info">
-            <span class="mock-project-name">my-ios-app</span>
-            <span class="mock-project-url">bitbucket.org:team/ios-app</span>
+            <span class="mock-project-name">sample-ios-app</span>
+            <span class="mock-project-url">git@github.com:kaisarnajar-driod/sample-ios-app.git</span>
             <div class="mock-project-langs">
               <span class="lang-tag">hi</span>
               <span class="lang-tag">ar</span>
@@ -966,6 +897,71 @@
           </div>
           <div class="mock-sync-btn">Sync</div>
         </div>
+      </div>
+    </div>
+
+    <!-- Sync -->
+    <div class="terminal" id="demo-sync" style="display:none">
+      <div class="terminal-bar">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <div class="terminal-title">What happens when you click Sync</div>
+      </div>
+      <div class="terminal-body">
+        <span class="output">Pulling latest changes from origin/main...</span><br/>
+        <span class="output">Parsing app/src/main/res/values/strings.xml (24 keys)</span><br/>
+        <span class="output">Diffing against last snapshot...</span><br/>
+        <span class="output">&nbsp;&nbsp;&#8594; 5 new keys found</span><br/>
+        <span class="output">&nbsp;&nbsp;&#8594; 1 key removed</span><br/>
+        <br/>
+        <span class="output">Translating 5 keys &times; 4 languages = 20 translations</span><br/>
+        <span class="output">&nbsp;&nbsp;[hi] &#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608; 5/5</span><br/>
+        <span class="output">&nbsp;&nbsp;[ar] &#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608; 5/5</span><br/>
+        <span class="output">&nbsp;&nbsp;[fr] &#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608; 5/5</span><br/>
+        <span class="output">&nbsp;&nbsp;[es] &#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608; 5/5</span><br/>
+        <br/>
+        <span class="output">Validating placeholders... all clean</span><br/>
+        <span class="output">Merging into values-hi, values-ar, values-fr, values-es</span><br/>
+        <span class="output">Removing deleted keys from all language files</span><br/>
+        <span class="output">Committing: chore: add translations for new strings</span><br/>
+        <span class="output">Pushing to origin/main...</span><br/>
+        <br/>
+        <span class="success">Status: success</span><br/>
+        <span class="output">&nbsp;&nbsp;New keys&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5</span><br/>
+        <span class="output">&nbsp;&nbsp;Removed keys&nbsp;&nbsp;&nbsp;&nbsp;1</span><br/>
+        <span class="output">&nbsp;&nbsp;Languages&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4</span><br/>
+        <span class="output">&nbsp;&nbsp;Commit&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a3f7c2d1e9b0</span>
+      </div>
+    </div>
+
+    <!-- Manage -->
+    <div class="terminal" id="demo-manage" style="display:none">
+      <div class="terminal-bar">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <div class="terminal-title">Terminal — Docker management commands</div>
+      </div>
+      <div class="terminal-body">
+        <span class="comment"># View logs</span><br/>
+        <span class="prompt">$ </span><span class="cmd">docker logs</span> <span class="flag">-f</span> <span class="arg">transync</span><br/>
+        <br/>
+        <span class="comment"># Stop the container</span><br/>
+        <span class="prompt">$ </span><span class="cmd">docker stop</span> <span class="arg">transync</span><br/>
+        <br/>
+        <span class="comment"># Start it again</span><br/>
+        <span class="prompt">$ </span><span class="cmd">docker start</span> <span class="arg">transync</span><br/>
+        <br/>
+        <span class="comment"># Rebuild after pulling new changes</span><br/>
+        <span class="prompt">$ </span><span class="cmd">git pull</span><br/>
+        <span class="prompt">$ </span><span class="cmd">docker build</span> <span class="flag">-t</span> <span class="arg">transync</span> <span class="arg">.</span><br/>
+        <span class="prompt">$ </span><span class="cmd">docker rm</span> <span class="flag">-f</span> <span class="arg">transync</span><br/>
+        <span class="prompt">$ </span><span class="cmd">docker run</span> <span class="flag">-d</span> <span class="flag">--name</span> <span class="arg">transync</span> <span class="flag">-p</span> <span class="arg">8090:8090</span> \<br/>
+        &nbsp;&nbsp;<span class="flag">-v</span> <span class="arg">transync-data:/root/.transync</span> \<br/>
+        &nbsp;&nbsp;<span class="flag">-v</span> <span class="arg">~/.ssh:/root/.ssh:ro</span> <span class="arg">transync</span><br/>
+        <br/>
+        <span class="success">Data volume persists across rebuilds.</span>
       </div>
     </div>
   </div>
@@ -1009,7 +1005,7 @@
 <section id="workflow">
   <div class="section-label">How It Works</div>
   <h2 class="section-title">The sync workflow</h2>
-  <p class="section-subtitle">One command. Ten steps. Fully automated, end to end.</p>
+  <p class="section-subtitle">Click Sync in the web UI. Ten steps run automatically, end to end.</p>
 
   <div class="workflow-steps">
     <div class="workflow-step">
@@ -1072,45 +1068,42 @@
 <section id="quickstart">
   <div class="section-label">Quick Start</div>
   <h2 class="section-title">Up and running in 2 minutes</h2>
-  <p class="section-subtitle">Install once, add your repos, and start syncing.</p>
+  <p class="section-subtitle">Just Docker. No Python, no pip, no virtual environments.</p>
 
   <div class="quickstart-grid">
     <div class="qs-card">
-      <h3><span class="qs-step-num">1</span> Install</h3>
+      <h3><span class="qs-step-num">1</span> Clone &amp; Build</h3>
       <div class="qs-code">
-        <span class="comment"># Clone & install</span><br/>
         <span class="cmd">git clone git@github.com:kaisarnajar-driod/translation-automation-tool.git</span><br/>
         <span class="cmd">cd translation-automation-tool</span><br/>
-        <span class="cmd">pip install -e .</span>
+        <span class="cmd">docker build -t transync .</span>
       </div>
     </div>
     <div class="qs-card">
-      <h3><span class="qs-step-num">2</span> Configure</h3>
+      <h3><span class="qs-step-num">2</span> Run</h3>
       <div class="qs-code">
-        <span class="comment"># Generate config file</span><br/>
-        <span class="cmd">transync init</span><br/>
-        <br/>
-        <span class="comment"># No API key needed!</span><br/>
-        <span class="comment"># Uses Google Translate free tier</span>
+        <span class="cmd">docker run -d --name transync \</span><br/>
+        <span class="cmd">&nbsp;&nbsp;-p 8090:8090 \</span><br/>
+        <span class="cmd">&nbsp;&nbsp;-v transync-data:/root/.transync \</span><br/>
+        <span class="cmd">&nbsp;&nbsp;-v ~/.ssh:/root/.ssh:ro transync</span>
       </div>
     </div>
     <div class="qs-card">
       <h3><span class="qs-step-num">3</span> Add a project</h3>
       <div class="qs-code">
-        <span class="cmd">transync add my-app \</span><br/>
-        <span class="cmd">&nbsp;&nbsp;https://github.com/org/app.git \</span><br/>
-        <span class="cmd">&nbsp;&nbsp;--strings-path values/strings.xml \</span><br/>
-        <span class="cmd">&nbsp;&nbsp;--languages hi,ar,fr,es</span>
+        <span class="comment"># Open http://localhost:8090</span><br/>
+        <span class="comment"># Enter SSH URL, strings path, languages</span><br/>
+        <span class="cmd">git@github.com:org/app.git</span><br/>
+        <span class="cmd">app/src/main/res/values/strings.xml</span>
       </div>
     </div>
     <div class="qs-card">
       <h3><span class="qs-step-num">4</span> Sync!</h3>
       <div class="qs-code">
-        <span class="comment"># CLI</span><br/>
-        <span class="cmd">transync sync my-app</span><br/>
-        <br/>
-        <span class="comment"># Or launch the web UI</span><br/>
-        <span class="cmd">transync serve</span>
+        <span class="comment"># Click "Sync" in the web UI</span><br/>
+        <span class="comment"># Transync pulls, translates,</span><br/>
+        <span class="comment"># commits, and pushes — done.</span><br/>
+        <span class="cmd">No API key needed.</span>
       </div>
     </div>
   </div>
@@ -1124,9 +1117,16 @@
 
   <div class="arch-diagram">
     <div class="arch-row">
+      <div class="arch-box full" style="border-color: var(--accent);">
+        <h4>Docker Container</h4>
+        <p>Python 3.12 + Git + SSH &mdash; single image, no host dependencies</p>
+      </div>
+    </div>
+    <div class="arch-arrow">&#9660;</div>
+    <div class="arch-row">
       <div class="arch-box full">
-        <h4>CLI (Click + Rich) &nbsp;/&nbsp; Web UI (Flask)</h4>
-        <p>User interfaces</p>
+        <h4>Web UI (Flask :8090)</h4>
+        <p>Add projects, trigger syncs, view results</p>
       </div>
     </div>
     <div class="arch-arrow">&#9660;</div>
@@ -1157,9 +1157,17 @@
     </div>
     <div class="arch-arrow">&#9660;</div>
     <div class="arch-row">
-      <div class="arch-box full">
+      <div class="arch-box">
         <h4>SQLite Database</h4>
         <p>projects &bull; sync_history &bull; snapshots</p>
+      </div>
+      <div class="arch-box">
+        <h4>Data Volume</h4>
+        <p>Persists across restarts</p>
+      </div>
+      <div class="arch-box">
+        <h4>SSH Keys</h4>
+        <p>Mounted read-only</p>
       </div>
     </div>
   </div>
