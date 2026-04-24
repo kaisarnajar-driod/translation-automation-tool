@@ -20,4 +20,4 @@ RUN mkdir -p /root/.transync/repos && \
 
 EXPOSE 8090
 
-CMD ["transync", "serve", "--port", "8090"]
+CMD ["python", "-c", "from transync.config import load_config; from transync.web import create_app; app = create_app(load_config()); app.run(host='0.0.0.0', port=8090)"]
